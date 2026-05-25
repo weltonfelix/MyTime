@@ -95,9 +95,11 @@ struct ContentView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Preferências", systemImage: "gear") {
-                        showSettings.toggle()
-                    }
+                    Button(
+                        "Preferências",
+                        systemImage: "gear",
+                        action: showSettingsSheet
+                    )
                 }
                 ToolbarItem {
                     Button("Editar Tarefas", action: showTasksSheet)
@@ -128,22 +130,32 @@ struct ContentView: View {
             .navigationDestination(for: MyTask.self) { task in
                 PomodoroView().navigationTitle(task.taskDescription)
             }
+            .onAppear(perform: deleteOldRoutines)
             .onAppear {
-                // Delete routine if it's from yesterday
-                let routineDate = routine?.date ?? .distantPast
-
-                if !Calendar.current.isDateInToday(routineDate) {
-                    routines.forEach(modelContext.delete)
-                    tasks.forEach(modelContext.delete)
-                }
-
-                if routines.isEmpty {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        showTasksSheet()
-                    }
+                Task {
+                    await NotificationsService.shared.requestAuthorization()
                 }
             }
         }
+    }
+
+    func deleteOldRoutines() {
+        let routineDate = routine?.date ?? .distantPast
+
+        if !Calendar.current.isDateInToday(routineDate) {
+            routines.forEach(modelContext.delete)
+            tasks.forEach(modelContext.delete)
+        }
+
+        if routines.isEmpty {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                showTasksSheet()
+            }
+        }
+    }
+
+    func showSettingsSheet() {
+        showSettings = true
     }
 
     func showTasksSheet() {

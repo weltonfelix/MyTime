@@ -47,7 +47,7 @@ final class PomodoroViewModel {
     private var endDate: Date? {
         timerStartDate?.addingTimeInterval(currentStageDuration)
     }
-    
+
     private var soundManager = SoundManager()
 
     func startTimer() {
@@ -56,23 +56,27 @@ final class PomodoroViewModel {
         timerStartDate = .now - elapsedTime
         remainingOnPause = nil
         isTimerRunning = true
+
+        scheduleNotification(in: remainingTime(at: .now))
     }
 
     func pauseTimer() {
         isTimerRunning = false
         remainingOnPause = remainingTime(at: .now)
-    }
-
-    func stopTimer() {
-        isTimerRunning = false
-        remainingOnPause = nil
-        timerStartDate = nil
+        NotificationsService.shared.removeAll()
     }
 
     func restartPomodoro() {
         currentStage = 0
         status = .focus
         stopTimer()
+        NotificationsService.shared.removeAll()
+    }
+
+    private func stopTimer() {
+        isTimerRunning = false
+        remainingOnPause = nil
+        timerStartDate = nil
     }
 
     func remainingTime(at now: Date) -> TimeInterval {
@@ -94,7 +98,10 @@ final class PomodoroViewModel {
 
         if stage == currentStage {
             if status == .focus {
-                return max(0, 1 - ceil(remainingTime(at: date)) / currentStageDuration)  // Focus
+                return max(
+                    0,
+                    1 - ceil(remainingTime(at: date)) / currentStageDuration
+                )  // Focus
             }
             return 1  // Rest
         }
@@ -118,6 +125,33 @@ final class PomodoroViewModel {
                 status = .focus
             }
         }
+
         soundManager.playChime()
+    }
+
+    private func scheduleNotification(in interval: TimeInterval) {
+        guard interval > 0 else { return }
+
+        let title: String
+        let body: String
+
+        switch status {
+        case .focus:
+            title = "Sessão de foco concluída!"
+            body = "Você merece um pouco de descanso."
+        case .rest:
+            title = "Sessão de descanso concluída!"
+            body = "Você está pronto para o próximo foco!"
+        case .longRest:
+            title = "Parabéns!"
+            body = "Ciclo pomodoro concluído!"
+        case .ended:
+            return
+        }
+
+        Task {
+            await NotificationsService.shared
+                .sendNotification(title: title, body: body, in: interval)
+        }
     }
 }
