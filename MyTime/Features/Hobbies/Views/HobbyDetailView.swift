@@ -1,0 +1,57 @@
+//
+//  HobbyDetailView.swift
+//  MyTime
+//
+//  Created by Welton Felix on 22/05/26.
+//
+
+import SwiftUI
+
+struct HobbyDetailView: View {
+    @Bindable var hobby: Hobby
+    @State private var originalTitle: String = ""
+    @State private var originalDescription: String = ""
+    @State private var classifier = HobbyClassifier()
+
+    var body: some View {
+        VStack {
+            List {
+                Section {
+                    TextField(
+                        "Detalhes",
+                        text: $hobby.hobbyDescription,
+                        axis: .vertical
+                    )
+                    .lineLimit(5...10)
+                } footer: {
+                    Text(
+                        "Conte um pouco sobre esse hobby. Em que momentos você prefere praticá-los? Você prefere fazer sozinho ou com outras pessoas?"
+                    )
+                }
+            }
+        }
+        .navigationTitle($hobby.title)
+        .onAppear {
+            originalTitle = hobby.title
+            originalDescription = hobby.hobbyDescription
+        }
+        .onDisappear {
+            let titleChanged = hobby.title != originalTitle
+            let descriptionChanged = hobby.hobbyDescription != originalDescription
+            let notClassified = hobby.energyLevel == nil || hobby.minimumDurationInMinutes == nil
+            
+            guard titleChanged || descriptionChanged || notClassified else {
+                return
+            }
+            
+            Task {
+                try? await classifier.classify(hobby: hobby)
+            }
+        }
+    }
+}
+
+#Preview {
+    let hobby: Hobby = .init(title: "Correr", hobbyDescription: "")
+    HobbyDetailView(hobby: hobby)
+}
