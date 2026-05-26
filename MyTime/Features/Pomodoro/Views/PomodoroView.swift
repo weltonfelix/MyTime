@@ -7,22 +7,15 @@
 
 import SwiftUI
 
-extension TimeInterval {
-    var formattedAsTimer: String {
-        let total = Int(self)
-        return String(format: "%02d:%02d", total / 60, total % 60)
-    }
-}
-
 struct PomodoroControls: View {
-    let vm: PomodoroViewModel
+    @State var vm: PomodoroViewModel
     let date: Date
 
     private var buttonLabel: String {
         if vm.status == .ended {
-            return "Reiniciar"
+            return "Restart"
         }
-        return vm.isTimerRunning ? "Pausar" : "Continuar"
+        return vm.isTimerRunning ? "Pause" : "Continue"
     }
 
     private var buttonIcon: String {
@@ -93,7 +86,7 @@ struct PomodoroView: View {
             if showAccentBackground {
                 Color.accent.ignoresSafeArea().transition(.opacity)
             }
-            TimelineView(.periodic(from: .now, by: 1)) { context in
+            TimelineView(.periodic(from: .now, by: 0.1)) { context in
                 PomodoroControls(vm: vm, date: context.date)
                     .onChange(of: context.date) { _, now in
                         guard vm.status != .ended else { return }
@@ -128,7 +121,7 @@ struct PomodoroView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(
-                    "Reiniciar",
+                    "Restart",
                     systemImage: "arrow.counterclockwise",
                     action: vm.restartPomodoro
                 ).labelStyle(.iconOnly)

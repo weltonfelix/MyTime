@@ -18,14 +18,14 @@ struct HobbyDetailView: View {
             List {
                 Section {
                     TextField(
-                        "Detalhes",
+                        "Details",
                         text: $hobby.hobbyDescription,
                         axis: .vertical
                     )
                     .lineLimit(5...10)
                 } footer: {
                     Text(
-                        "Conte um pouco sobre esse hobby. Em que momentos você prefere praticá-los? Você prefere fazer sozinho ou com outras pessoas?"
+                        "Tell a bit about this hobby. When do you prefer to do it? Do you enjoy it alone or with others?"
                     )
                 }
             }

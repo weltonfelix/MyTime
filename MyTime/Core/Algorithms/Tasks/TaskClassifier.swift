@@ -74,7 +74,7 @@ class TaskClassifier {
         let normalizedGenerated = classified.title.normalized
 
         return tasks.first {
-            $0.1 == normalizedGenerated
+            $0.1.normalized == normalizedGenerated
         }.map {
             MatchedTask(task: $0.0, classification: classified)
         }

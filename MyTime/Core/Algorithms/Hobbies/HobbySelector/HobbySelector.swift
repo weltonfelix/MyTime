@@ -201,6 +201,8 @@ class HobbySelector {
         tasks: [MatchedTask],
         hobbies: [Hobby]
     ) -> [SelectedHobby] {
+        guard !hobbies.isEmpty else { return [] }
+        
         // MARK: - Time budget
 
         let taskLoad = tasks.reduce(0) {

@@ -59,6 +59,7 @@ class Hobby {
             || text.contains("final de semana")
             || text.contains("fins de semana")
             || text.contains("finais de semana")
+            || text.contains("weekend")
         {
             return [.saturday, .sunday]
         }
@@ -67,6 +68,7 @@ class Hobby {
         if text.contains("dia util")
             || text.contains("dias uteis")
             || text.contains("semana")
+            || text.contains("weekdays")
                 && !text.contains("fim")
         {
             return [.monday, .tuesday, .wednesday, .thursday, .friday]

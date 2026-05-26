@@ -56,6 +56,9 @@ class RoutineGenerator {
         let domestic = tasks.filter {
             $0.classification?.activityType == .domestic
         }
+        let unclassified = tasks.filter {
+            $0.classification == nil || $0.classification?.activityType == nil
+        }
 
         let buffers = (light + domestic).shuffled()
 
@@ -86,6 +89,12 @@ class RoutineGenerator {
         while bufferIndex < buffers.count {
             ordered.append(buffers[bufferIndex])
             bufferIndex += 1
+        }
+        
+        // Append unclassified tasks
+        for task in unclassified {
+            ordered.append(task)
+            
         }
 
         return ordered

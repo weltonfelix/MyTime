@@ -42,11 +42,15 @@ struct ContentView: View {
                                     TaskRow(activity: activity)
                                 }
                             } else if activity.hobby != nil {
-                                HobbyRow(
-                                    activity: activity,
-                                ) {
-                                    deleteHobbyActivity(activity)
-                                }
+                                NavigationLink(value: activity) {
+                                    HobbyRow(
+                                        activity: activity,
+                                    ) {
+                                        deleteHobbyActivity(activity)
+                                    }
+                                }.listRowBackground(
+                                    LinearGradient.hobbyGradient.opacity(0.15)
+                                )
                             }
                         }
                         .onMove(perform: moveActivity)
@@ -66,7 +70,7 @@ struct ContentView: View {
                     if isLoading {
                         VStack {
                             ProgressView()
-                            Text("Preparando seu dia...")
+                            Text("Preparing your day...")
                         }
                     } else {
                         ContentUnavailableView {
@@ -79,16 +83,16 @@ struct ContentView: View {
                                     Image(systemName: "sun.horizon.fill")
                                         .foregroundStyle(.accent)
                                 }
-                                Text("Rotina Vazia").fontWeight(.semibold)
+                                Text("Empty Routine").fontWeight(.semibold)
                             }.font(.title2)
 
                         } description: {
-                            Text("Seu dia está bem calmo")
+                            Text("Your day is wide open")
                                 .font(.title2)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.secondary)
                         } actions: {
-                            Button("Adicionar Tarefas", action: showTasksSheet)
+                            Button("Add Tasks", action: showTasksSheet)
                         }
                     }
                 }
@@ -96,15 +100,15 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(
-                        "Preferências",
+                        "Preferences",
                         systemImage: "gear",
                         action: showSettingsSheet
                     )
                 }
                 ToolbarItem {
-                    Button("Editar Tarefas", action: showTasksSheet)
+                    Button("Edit Tasks", action: showTasksSheet)
                 }
-            }.navigationTitle("Meu Dia")
+            }.navigationTitle("My Day")
             .navigationSubtitle(
                 Date().formatted(
                     .dateTime.weekday(.wide).month(.wide).day(.defaultDigits)
@@ -119,16 +123,20 @@ struct ContentView: View {
                 SettingsView()
             }
             .alert(
-                "Houve um erro ao gerar seu dia",
+                "There was an error generating your day",
                 isPresented: $showErrorAlert
             ) {
-                Button("Tentar Novamente") {
+                Button("Try Again") {
                     generateRoutine()
                 }
-                Button("Cancelar", role: .cancel) {}
+                Button("Cancel", role: .cancel) {}
             }
             .navigationDestination(for: MyTask.self) { task in
                 PomodoroView().navigationTitle(task.taskDescription)
+            }
+            .navigationDestination(for: Activity.self) { activity in
+                TimerView(durationInMinutes: activity.durationInMin ?? 30)
+                    .navigationTitle(activity.hobby?.title ?? "Timer")
             }
             .onAppear(perform: deleteOldRoutines)
             .onAppear {

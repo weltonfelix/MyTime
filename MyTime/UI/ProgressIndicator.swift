@@ -9,13 +9,14 @@ import SwiftUI
 
 struct ProgressIndicator: View {
     var isExpanded: Bool = false
+    var large: Bool = false
     var progress: CGFloat = 0
 
-    private var width: Double { isExpanded ? 48 : 20 }
+    private var width: Double { isExpanded ? (large ? 120 : 48) : 20 }
     private var progressWidth: Double {
         if isExpanded {
             let radius = 10.0  // half of the height
-            return width * progress + radius * (1 - progress)
+            return width * progress + progress * (radius * (1 - progress))
         } else {
             return progress < 1 ? 0 : width
         }
@@ -29,7 +30,6 @@ struct ProgressIndicator: View {
                 .glassEffect(.regular.tint(.accent))
         }.frame(width: width, height: 20)
             .clipShape(Capsule())
-            .animation(.spring, value: progressWidth)
             .animation(.spring, value: isExpanded)
     }
 }
@@ -45,4 +45,5 @@ struct ProgressIndicator: View {
         ProgressIndicator(progress: 0)
 
     }
+    ProgressIndicator(isExpanded: true, large: true, progress: 0)
 }

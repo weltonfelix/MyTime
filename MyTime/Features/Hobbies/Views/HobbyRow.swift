@@ -63,9 +63,6 @@ struct HobbyRow: View {
 
                 }
             }
-            .listRowBackground(
-                LinearGradient.hobbyGradient.opacity(0.15)
-            )
             .contextMenu {
                 Picker("Hobby", selection: $activity.hobby) {
                     ForEach(allHobbies) { hobby in
@@ -74,7 +71,7 @@ struct HobbyRow: View {
                 }
                 .pickerStyle(.inline)
                 Button(
-                    "Remover",
+                    "Remove",
                     systemImage: "xmark",
                     role: .destructive
                 ) {

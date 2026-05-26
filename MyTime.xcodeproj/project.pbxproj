@@ -6,14 +6,98 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C973F2312FC4E692002A7D5C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C973F2302FC4E692002A7D5C /* WidgetKit.framework */; };
+		C973F2332FC4E692002A7D5C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C973F2322FC4E692002A7D5C /* SwiftUI.framework */; };
+		C973F2402FC4E692002A7D5C /* MyTimePomodoroExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C973F22E2FC4E692002A7D5C /* MyTimePomodoroExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C973F23E2FC4E692002A7D5C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90655AD2FB78A6A00EB0AF4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C973F22D2FC4E692002A7D5C;
+			remoteInfo = MyTimePomodoroExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C973F2452FC4E692002A7D5C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C973F2402FC4E692002A7D5C /* MyTimePomodoroExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		C90655B52FB78A6A00EB0AF4 /* MyTime.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyTime.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C973F22E2FC4E692002A7D5C /* MyTimePomodoroExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MyTimePomodoroExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C973F2302FC4E692002A7D5C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		C973F2322FC4E692002A7D5C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		C973F25F2FC5BD68002A7D5C /* MyTimePomodoroExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MyTimePomodoroExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C973F2412FC4E692002A7D5C /* Exceptions for "MyTimePomodoro" folder in "MyTimePomodoroExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C973F22D2FC4E692002A7D5C /* MyTimePomodoroExtension */;
+		};
+		C973F2472FC4E709002A7D5C /* Exceptions for "MyTime" folder in "MyTime" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C90655B42FB78A6A00EB0AF4 /* MyTime */;
+		};
+		C973F24B2FC4E973002A7D5C /* Exceptions for "MyTimePomodoro" folder in "MyTime" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				DotProgressIndicator.swift,
+				LiveActivityProgressIndicator.swift,
+				MyTimePomodoroAttributes.swift,
+				PlayPauseButton.swift,
+			);
+			target = C90655B42FB78A6A00EB0AF4 /* MyTime */;
+		};
+		C973F24D2FC4ECA8002A7D5C /* Exceptions for "MyTime" folder in "MyTimePomodoroExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Core/Extensions/TimeInterval+Formatted.swift",
+				Intents/PauseTimerIntent.swift,
+				Resources/Assets.xcassets,
+				Resources/Localizable.xcstrings,
+			);
+			target = C973F22D2FC4E692002A7D5C /* MyTimePomodoroExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C90655B72FB78A6A00EB0AF4 /* MyTime */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C973F2472FC4E709002A7D5C /* Exceptions for "MyTime" folder in "MyTime" target */,
+				C973F24D2FC4ECA8002A7D5C /* Exceptions for "MyTime" folder in "MyTimePomodoroExtension" target */,
+			);
 			path = MyTime;
+			sourceTree = "<group>";
+		};
+		C973F2342FC4E692002A7D5C /* MyTimePomodoro */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C973F24B2FC4E973002A7D5C /* Exceptions for "MyTimePomodoro" folder in "MyTime" target */,
+				C973F2412FC4E692002A7D5C /* Exceptions for "MyTimePomodoro" folder in "MyTimePomodoroExtension" target */,
+			);
+			path = MyTimePomodoro;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -26,6 +110,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C973F22B2FC4E692002A7D5C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C973F2332FC4E692002A7D5C /* SwiftUI.framework in Frameworks */,
+				C973F2312FC4E692002A7D5C /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -33,7 +126,10 @@
 			isa = PBXGroup;
 			children = (
 				C90655B72FB78A6A00EB0AF4 /* MyTime */,
+				C973F2342FC4E692002A7D5C /* MyTimePomodoro */,
+				C973F22F2FC4E692002A7D5C /* Frameworks */,
 				C90655B62FB78A6A00EB0AF4 /* Products */,
+				C973F25F2FC5BD68002A7D5C /* MyTimePomodoroExtension.entitlements */,
 			);
 			sourceTree = "<group>";
 		};
@@ -41,8 +137,18 @@
 			isa = PBXGroup;
 			children = (
 				C90655B52FB78A6A00EB0AF4 /* MyTime.app */,
+				C973F22E2FC4E692002A7D5C /* MyTimePomodoroExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C973F22F2FC4E692002A7D5C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C973F2302FC4E692002A7D5C /* WidgetKit.framework */,
+				C973F2322FC4E692002A7D5C /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -55,10 +161,12 @@
 				C90655B12FB78A6A00EB0AF4 /* Sources */,
 				C90655B22FB78A6A00EB0AF4 /* Frameworks */,
 				C90655B32FB78A6A00EB0AF4 /* Resources */,
+				C973F2452FC4E692002A7D5C /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C973F23F2FC4E692002A7D5C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C90655B72FB78A6A00EB0AF4 /* MyTime */,
@@ -69,6 +177,28 @@
 			productName = MyTime;
 			productReference = C90655B52FB78A6A00EB0AF4 /* MyTime.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C973F22D2FC4E692002A7D5C /* MyTimePomodoroExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C973F2422FC4E692002A7D5C /* Build configuration list for PBXNativeTarget "MyTimePomodoroExtension" */;
+			buildPhases = (
+				C973F22A2FC4E692002A7D5C /* Sources */,
+				C973F22B2FC4E692002A7D5C /* Frameworks */,
+				C973F22C2FC4E692002A7D5C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C973F2342FC4E692002A7D5C /* MyTimePomodoro */,
+			);
+			name = MyTimePomodoroExtension;
+			packageProductDependencies = (
+			);
+			productName = MyTimePomodoroExtension;
+			productReference = C973F22E2FC4E692002A7D5C /* MyTimePomodoroExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -83,6 +213,9 @@
 					C90655B42FB78A6A00EB0AF4 = {
 						CreatedOnToolsVersion = 26.5;
 					};
+					C973F22D2FC4E692002A7D5C = {
+						CreatedOnToolsVersion = 26.5;
+					};
 				};
 			};
 			buildConfigurationList = C90655B02FB78A6A00EB0AF4 /* Build configuration list for PBXProject "MyTime" */;
@@ -91,6 +224,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"pt-BR",
 			);
 			mainGroup = C90655AC2FB78A6A00EB0AF4;
 			minimizedProjectReferenceProxies = 1;
@@ -100,12 +234,20 @@
 			projectRoot = "";
 			targets = (
 				C90655B42FB78A6A00EB0AF4 /* MyTime */,
+				C973F22D2FC4E692002A7D5C /* MyTimePomodoroExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C90655B32FB78A6A00EB0AF4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C973F22C2FC4E692002A7D5C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +264,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C973F22A2FC4E692002A7D5C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C973F23F2FC4E692002A7D5C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C973F22D2FC4E692002A7D5C /* MyTimePomodoroExtension */;
+			targetProxy = C973F23E2FC4E692002A7D5C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		C90655BE2FB78A6A00EB0AF4 /* Debug */ = {
@@ -185,6 +342,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -242,6 +400,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -249,14 +408,17 @@
 		C90655C12FB78A6A00EB0AF4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MyTime;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MyTime/MyTime.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = MyTime/MockData.swift;
 				DEVELOPMENT_TEAM = 9C8Y382MJG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MyTime/Info.plist;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -282,14 +444,17 @@
 		C90655C22FB78A6A00EB0AF4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MyTime;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MyTime/MyTime.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = MyTime/MockData.swift;
 				DEVELOPMENT_TEAM = 9C8Y382MJG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MyTime/Info.plist;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -305,6 +470,68 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C973F2432FC4E692002A7D5C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MyTimePomodoroExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9C8Y382MJG;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MyTimePomodoro/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MyTimePomodoro;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.weltonfelix.MyTime.MyTimePomodoro;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C973F2442FC4E692002A7D5C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MyTimePomodoroExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9C8Y382MJG;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MyTimePomodoro/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MyTimePomodoro;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.weltonfelix.MyTime.MyTimePomodoro;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -329,6 +556,15 @@
 			buildConfigurations = (
 				C90655C12FB78A6A00EB0AF4 /* Debug */,
 				C90655C22FB78A6A00EB0AF4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C973F2422FC4E692002A7D5C /* Build configuration list for PBXNativeTarget "MyTimePomodoroExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C973F2432FC4E692002A7D5C /* Debug */,
+				C973F2442FC4E692002A7D5C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

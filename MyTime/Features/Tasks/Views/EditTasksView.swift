@@ -32,7 +32,7 @@ struct EditTasksView: View {
         NavigationStack {
             VStack {
                 if displayedTasks.isEmpty {
-                    ContentUnavailableView("Nenhuma Tarefa", systemImage: "")
+                    ContentUnavailableView("No Tasks", systemImage: "")
                         .transition(.opacity)
                 } else {
                     List {
@@ -49,23 +49,23 @@ struct EditTasksView: View {
             }.toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(
-                        "Fechar",
+                        "Close",
                         systemImage: "xmark",
                         role: .close,
                         action: tryDismiss
                     )
                     .confirmationDialog(
-                        "As alterações nas tarefas serão descartadas",
+                        "Your task changes will be discarded",
                         isPresented: $showDiscardConfirmation,
                         titleVisibility: .visible,
                     ) {
-                        Button("Descartar", role: .destructive, action: discard)
-                        Button("Cancelar", role: .cancel) {}
+                        Button("Discard", role: .destructive, action: discard)
+                        Button("Cancel", role: .cancel) {}
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(
-                        "Salvar",
+                        "Save",
                         systemImage: "checkmark",
                         action: save
                     )
@@ -82,7 +82,7 @@ struct EditTasksView: View {
                 }
             }
             .animation(.default, value: displayedTasks.isEmpty)
-            .navigationTitle("O que vamos fazer hoje?")
+            .navigationTitle("What are we doing today?")
             .navigationBarTitleDisplayMode(
                 .inline
             )
@@ -116,8 +116,16 @@ struct EditTasksView: View {
             modelContext.insert(task)
         }
 
-        onSubmit(hasChanges)
-        dismiss()
+        do {
+            if modelContext.hasChanges {
+                try modelContext.save()
+            }
+
+            onSubmit(hasChanges)
+            dismiss()
+        } catch {
+            showDiscardConfirmation = true
+        }
     }
 
     func tryDismiss() {
@@ -141,7 +149,7 @@ struct EditTasksView: View {
 
 #Preview("Populated") {
     do {
-        return EditTasksView {changed in }.modelContainer(try mockContainer())
+        return EditTasksView { changed in }.modelContainer(try mockContainer())
     } catch {
         return Text("Failed to create container: \(error.localizedDescription)")
     }

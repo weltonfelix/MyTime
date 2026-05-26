@@ -18,14 +18,14 @@ struct NewTaskView: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             TextField(
-                "Descreva a tarefa",
+                "Describe the task",
                 text: $description,
                 axis: .vertical
             )
             .lineLimit(3...10).fixedSize(horizontal: false, vertical: true)
             .frame(minHeight: 80).focused($isFocused)
 
-            Button("Adicionar", systemImage: "arrow.up", action: handleSubmit)
+            Button("Add", systemImage: "arrow.up", action: handleSubmit)
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
@@ -33,7 +33,7 @@ struct NewTaskView: View {
                     .circle
                 ).disabled(description.isEmpty)
         }
-        .padding()
+        .padding(24)
         .background(
             GeometryReader { geo in
                 Color.clear
@@ -59,4 +59,5 @@ struct NewTaskView: View {
     NewTaskView { task in
         print(task.taskDescription)
     }
+    .background(.blue)
 }

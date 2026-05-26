@@ -45,7 +45,7 @@ struct SettingsView: View {
 
                         }
 
-                        Button("Adicionar Hobby") {
+                        Button("Add Hobby") {
                             withAnimation {
                                 isAdding = true
                                 isNewHobbyFocused = true
@@ -55,25 +55,25 @@ struct SettingsView: View {
                     }
                     Section {
                         TextField(
-                            "Instruções Adicionais",
+                            "Additional Instructions",
                             text: $instructions,
                             axis: .vertical
                         )
                         .lineLimit(5...10)
                     } footer: {
                         Text(
-                            "Detalhe como você prefere organizar seu dia. Gostaria de alocar mais ou menos tempo para seus hobbies? Existem restrições específicas?"
+                            "Describe how you like to organize your day. Would you like more or less time for your hobbies? Any specific constraints?"
                         )
                     }
                 }
             }.toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Fechar", systemImage: "xmark", role: .close) {
+                    Button("Close", systemImage: "xmark", role: .close) {
                         dismiss()
                     }
                 }
             }
-            .navigationTitle("Preferências")
+            .navigationTitle("Preferences")
             .navigationBarTitleDisplayMode(
                 .inline
             )
