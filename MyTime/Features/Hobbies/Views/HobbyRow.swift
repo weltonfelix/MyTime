@@ -51,6 +51,7 @@ struct HobbyRow: View {
                     Text(
                         "\(hobby.title) - \((activity.durationInMin ?? 0).formattedAsDuration)"
                     )
+                    .transition(.opacity)
                     .foregroundStyle(
                         activity.isCompleted ? .secondary : .primary
                     )

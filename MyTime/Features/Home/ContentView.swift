@@ -5,6 +5,7 @@
 //  Created by Welton Felix on 15/05/26.
 //
 
+import FoundationModels
 import SwiftData
 import SwiftUI
 
@@ -12,6 +13,10 @@ struct ContentView: View {
     @State private var showEditTasks = false
     @State private var showSettings = false
     @State private var showErrorAlert: Bool = false
+
+    @State private var showAINotAvailable: Bool = false
+    @State private var aiNotAvailableMessage: String?
+
     @State private var isLoading: Bool = false
 
     private var tasksClassifier = TaskClassifier()
@@ -131,6 +136,7 @@ struct ContentView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             }
+            .alert(aiNotAvailableMessage ?? "Apple Inteligence is not available", isPresented: $showAINotAvailable) {}
             .navigationDestination(for: MyTask.self) { task in
                 PomodoroView().navigationTitle(task.taskDescription)
             }
@@ -187,6 +193,30 @@ struct ContentView: View {
     }
 
     func generateRoutine() {
+        guard SystemLanguageModel.default.isAvailable else {
+            aiNotAvailableMessage =
+                switch SystemLanguageModel.default.availability {
+                case .unavailable(.deviceNotEligible):
+                    String(
+                        localized:
+                            "This device is not eligible for Apple Intelligence"
+                    )
+                case .unavailable(.appleIntelligenceNotEnabled):
+                    String(
+                        localized:
+                            "You must enable Apple Intelligence in Settings"
+                    )
+                case .unavailable(.modelNotReady):
+                    String(localized: "Apple Intelligence is not ready")
+                case .unavailable:
+                    String(localized: "Unknown Apple Intelligence error")
+                default: ""
+                }
+            
+            showAINotAvailable = true
+            return
+        }
+
         isLoading = true
         Task {
             do {
