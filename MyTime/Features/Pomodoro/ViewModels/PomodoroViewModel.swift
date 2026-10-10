@@ -125,13 +125,13 @@ final class PomodoroViewModel {
             remainingOnPause: remainingOnPause
         )
 
-        Task {
+        Task { @MainActor in
             await liveActivity.update(.init(state: newState, staleDate: nil))
         }
     }
 
     func endLiveActivity() {
-        Task {
+        Task { @MainActor in
             await liveActivity?.end(nil, dismissalPolicy: .immediate)
             liveActivity = nil
         }
@@ -208,7 +208,7 @@ final class PomodoroViewModel {
 
     private func startLiveActivityUpdates() {
         liveActivityUpdateTask?.cancel()
-        liveActivityUpdateTask = Task {
+        liveActivityUpdateTask = Task { @MainActor in
             while !Task.isCancelled {
                 updateLiveActivity()
                 try? await Task.sleep(for: .seconds(5))

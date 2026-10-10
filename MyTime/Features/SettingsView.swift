@@ -144,10 +144,8 @@ struct SettingsView: View {
     SettingsView()
 }
 
+#if DEBUG
 #Preview("Populated") {
-    do {
-        return SettingsView().modelContainer(try mockContainer())
-    } catch {
-        return Text("Failed to create container: \(error.localizedDescription)")
-    }
+    SettingsView().modelContainer(mockContainer())
 }
+#endif

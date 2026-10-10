@@ -147,10 +147,9 @@ struct EditTasksView: View {
     EditTasksView { changed in }
 }
 
+#if DEBUG
 #Preview("Populated") {
-    do {
-        return EditTasksView { changed in }.modelContainer(try mockContainer())
-    } catch {
-        return Text("Failed to create container: \(error.localizedDescription)")
-    }
+    EditTasksView { _ in }
+        .modelContainer(mockContainer())
 }
+#endif

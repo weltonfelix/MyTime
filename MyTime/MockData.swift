@@ -5,10 +5,11 @@
 //  Created by Welton Felix on 23/05/26.
 //
 
+#if DEBUG
 import Foundation
 import SwiftData
 
-func mockContainer() throws -> ModelContainer {
+func mockContainer() -> ModelContainer {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
         for: Routine.self,
@@ -45,7 +46,7 @@ func mockContainer() throws -> ModelContainer {
         tasksActivities[0], tasksActivities[1], hobbiesActivities[0],
         tasksActivities[2], hobbiesActivities[1],
     ]
-    
+
     for (index, activity) in activities.enumerated() {
         activity.order = index
     }
@@ -54,3 +55,4 @@ func mockContainer() throws -> ModelContainer {
 
     return container
 }
+#endif
