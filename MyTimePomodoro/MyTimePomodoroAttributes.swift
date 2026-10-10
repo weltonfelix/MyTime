@@ -8,12 +8,12 @@
 import Foundation
 import ActivityKit
 
-struct MyTimePomodoroAttributes: ActivityAttributes {
-    public struct ContentState: Codable, Hashable {
+nonisolated struct MyTimePomodoroAttributes: ActivityAttributes, Sendable {
+    public struct ContentState: Codable, Hashable, Sendable {
         var currentSession: Int
         var pomodoroStatus: String
         var endDate: Date?
-        var stageDuration: TimeInterval,
-        remainingOnPause: TimeInterval?
+        var stageDuration: TimeInterval
+        var remainingOnPause: TimeInterval?
     }
 }
