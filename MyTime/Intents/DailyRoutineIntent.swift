@@ -11,7 +11,7 @@ import SwiftData
 
 struct GetDailyRoutineIntent: AppIntent {
     static var title: LocalizedStringResource = "Read Daily Routine"
-    static var description = IntentDescription("Siri reads your daily routine")
+    static var description = IntentDescription("Reads your daily routine")
 
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<String>
