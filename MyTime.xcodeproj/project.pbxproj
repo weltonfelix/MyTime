@@ -13,6 +13,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A10000000000000000000003 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90655AD2FB78A6A00EB0AF4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C90655B42FB78A6A00EB0AF4;
+			remoteInfo = MyTime;
+		};
 		C973F23E2FC4E692002A7D5C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C90655AD2FB78A6A00EB0AF4 /* Project object */;
@@ -37,6 +44,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A10000000000000000000001 /* MyTimeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = MyTimeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C90655B52FB78A6A00EB0AF4 /* MyTime.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyTime.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C973F22E2FC4E692002A7D5C /* MyTimePomodoroExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MyTimePomodoroExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C973F2302FC4E692002A7D5C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -82,6 +90,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A10000000000000000000002 /* MyTimeTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MyTimeTests;
+			sourceTree = "<group>";
+		};
 		C90655B72FB78A6A00EB0AF4 /* MyTime */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -103,6 +116,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A10000000000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C90655B22FB78A6A00EB0AF4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -125,6 +145,7 @@
 		C90655AC2FB78A6A00EB0AF4 = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000002 /* MyTimeTests */,
 				C90655B72FB78A6A00EB0AF4 /* MyTime */,
 				C973F2342FC4E692002A7D5C /* MyTimePomodoro */,
 				C973F22F2FC4E692002A7D5C /* Frameworks */,
@@ -136,6 +157,7 @@
 		C90655B62FB78A6A00EB0AF4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000001 /* MyTimeTests.xctest */,
 				C90655B52FB78A6A00EB0AF4 /* MyTime.app */,
 				C973F22E2FC4E692002A7D5C /* MyTimePomodoroExtension.appex */,
 			);
@@ -154,6 +176,27 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		A10000000000000000000008 /* MyTimeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000009 /* Build configuration list for PBXNativeTarget "MyTimeTests" */;
+			buildPhases = (
+				A10000000000000000000005 /* Sources */,
+				A10000000000000000000006 /* Frameworks */,
+				A10000000000000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000000000000000000004 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000002 /* MyTimeTests */,
+			);
+			name = MyTimeTests;
+			productName = MyTimeTests;
+			productReference = A10000000000000000000001 /* MyTimeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		C90655B42FB78A6A00EB0AF4 /* MyTime */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C90655C02FB78A6A00EB0AF4 /* Build configuration list for PBXNativeTarget "MyTime" */;
@@ -233,6 +276,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				A10000000000000000000008 /* MyTimeTests */,
 				C90655B42FB78A6A00EB0AF4 /* MyTime */,
 				C973F22D2FC4E692002A7D5C /* MyTimePomodoroExtension */,
 			);
@@ -240,6 +284,13 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A10000000000000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C90655B32FB78A6A00EB0AF4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -257,6 +308,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A10000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C90655B12FB78A6A00EB0AF4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -274,6 +332,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A10000000000000000000004 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C90655B42FB78A6A00EB0AF4 /* MyTime */;
+			targetProxy = A10000000000000000000003 /* PBXContainerItemProxy */;
+		};
 		C973F23F2FC4E692002A7D5C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C973F22D2FC4E692002A7D5C /* MyTimePomodoroExtension */;
@@ -282,6 +345,38 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		A10000000000000000000010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.weltonfelix.MyTimeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MyTime.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MyTime";
+			};
+			name = Debug;
+		};
+		A10000000000000000000011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.weltonfelix.MyTimeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MyTime.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MyTime";
+			};
+			name = Release;
+		};
 		C90655BE2FB78A6A00EB0AF4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -336,7 +431,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -397,7 +492,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -546,6 +641,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A10000000000000000000009 /* Build configuration list for PBXNativeTarget "MyTimeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000010 /* Debug */,
+				A10000000000000000000011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C90655B02FB78A6A00EB0AF4 /* Build configuration list for PBXProject "MyTime" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

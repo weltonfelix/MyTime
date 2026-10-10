@@ -24,6 +24,7 @@ class TaskLoadEvaluator {
         tasks: [MatchedTask],
         weight: (TaskActivityType?) -> Double
     ) -> Double {
+        guard !tasks.isEmpty else { return 0 }
         let base = tasks.reduce(0) {
             $0 + weight($1.classification?.activityType)
         }

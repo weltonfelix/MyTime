@@ -5,7 +5,6 @@
 //  Created by Welton Felix on 15/05/26.
 //
 
-import FoundationModels
 import SwiftData
 import SwiftUI
 
@@ -14,8 +13,8 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showErrorAlert: Bool = false
 
-    @State private var showAINotAvailable: Bool = false
-    @State private var aiNotAvailableMessage: String?
+    @State private var generationMessage = ""
+    @State private var showPreferenceNotice = false
 
     @State private var isLoading: Bool = false
 
@@ -35,6 +34,11 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             VStack {
+                if isLoading {
+                    ProgressView("Preparing your day...")
+                        .padding()
+                        .accessibilityLabel("Preparing your day")
+                }
                 if let routine, !routine.activities.isEmpty {
                     List {
                         ForEach(
@@ -72,12 +76,7 @@ struct ContentView: View {
                     ).listStyle(.inset)
 
                 } else {
-                    if isLoading {
-                        VStack {
-                            ProgressView()
-                            Text("Preparing your day...")
-                        }
-                    } else {
+                    if !isLoading {
                         ContentUnavailableView {
                             VStack {
                                 ZStack {
@@ -134,9 +133,16 @@ struct ContentView: View {
                 Button("Try Again") {
                     generateRoutine()
                 }
+                Button("Generate Basic Routine") { generateRoutine(basic: true) }
                 Button("Cancel", role: .cancel) {}
+            } message: {
+                Text(generationMessage + "\n\n" + String(localized: "Basic routines use local rules and reserve 30 minutes per task when estimating time for hobbies."))
             }
-            .alert(aiNotAvailableMessage ?? "Apple Inteligence is not available", isPresented: $showAINotAvailable) {}
+            .alert("Some preferences could not be applied", isPresented: $showPreferenceNotice) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("MyTime supports hobby amounts, available time, energy, and short sessions. Exact times, deadlines, and specific activity ordering are not supported.")
+            }
             .navigationDestination(for: MyTask.self) { task in
                 PomodoroView().navigationTitle(task.taskDescription)
             }
@@ -187,60 +193,42 @@ struct ContentView: View {
         modelContext.delete(activity)
     }
 
-    func generateRoutine() {
-        guard SystemLanguageModel.default.isAvailable else {
-            aiNotAvailableMessage =
-                switch SystemLanguageModel.default.availability {
-                case .unavailable(.deviceNotEligible):
-                    String(
-                        localized:
-                            "This device is not eligible for Apple Intelligence"
-                    )
-                case .unavailable(.appleIntelligenceNotEnabled):
-                    String(
-                        localized:
-                            "You must enable Apple Intelligence in Settings"
-                    )
-                case .unavailable(.modelNotReady):
-                    String(localized: "Apple Intelligence is not ready")
-                case .unavailable:
-                    String(localized: "Unknown Apple Intelligence error")
-                default: ""
-                }
-            
-            showAINotAvailable = true
-            return
-        }
-
+    func generateRoutine(basic: Bool = false) {
+        guard !isLoading else { return }
         isLoading = true
-        Task {
+        Task { @MainActor in
+            defer { isLoading = false }
             do {
-                for routine in routines {
-                    modelContext.delete(routine)
+                try modelContext.save()
+                let inputTasks = try modelContext.fetch(FetchDescriptor<MyTask>())
+                let inputHobbies = try modelContext.fetch(FetchDescriptor<Hobby>())
+                let inputInstructions = instructions
+                let snapshot = RoutineSnapshot(tasks: inputTasks, hobbies: inputHobbies, instructions: inputInstructions)
+                let preferences: UserInstructionsParser.Adjustments
+                let classifiedTasks: [MatchedTask]
+                var unsupported = false
+                if basic {
+                    preferences = UserInstructionsParser.parse(inputInstructions)
+                    classifiedTasks = inputTasks.map { MatchedTask(task: $0, classification: nil) }
+                } else {
+                    try OnDeviceAI.checkAvailability()
+                    let interpretation = try await PreferenceInterpreter.interpret(inputInstructions)
+                    preferences = interpretation.adjustments
+                    unsupported = interpretation.hasUnsupportedRequests
+                    classifiedTasks = try await tasksClassifier.classify(tasks: inputTasks)
                 }
-                try modelContext.save()
-
-                let classifiedTasks = try await tasksClassifier.classify(
-                    tasks: tasks
-                )
-
-                let routineGenerator = RoutineGenerator(
-                    instructions: instructions
-                )
-
-                let newRoutine = routineGenerator.generate(
-                    tasks: classifiedTasks,
-                    hobbies: hobbies
-                )
-                modelContext.insert(newRoutine)
-
-                try modelContext.save()
-
+                try Task.checkCancellation()
+                let current = RoutineSnapshot(
+                    tasks: try modelContext.fetch(FetchDescriptor<MyTask>()),
+                    hobbies: try modelContext.fetch(FetchDescriptor<Hobby>()), instructions: instructions)
+                guard snapshot == current else { throw OnDeviceAI.Failure.staleInput }
+                let draft = try RoutineGenerator(preferences: preferences).generate(tasks: classifiedTasks, hobbies: inputHobbies)
+                try RoutinePersistence.replace(with: draft, in: modelContext)
+                showPreferenceNotice = unsupported
             } catch {
-                print(error.localizedDescription)
+                generationMessage = OnDeviceAI.message(for: error)
                 showErrorAlert = true
             }
-            isLoading = false
         }
     }
 

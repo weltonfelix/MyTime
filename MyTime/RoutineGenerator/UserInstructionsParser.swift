@@ -11,7 +11,9 @@ struct UserInstructionsParser {
     
     // MARK: - Adjustment results
     
-    struct Adjustments {
+    struct Adjustments: Equatable {
+        var excludeHobbies = false
+        var preferShortSessions = false
         var maxFactorDelta: Double = 0      // added to maxFactor
         var availableMinutesDelta: Int = 0  // added to availableDayMinutes
         var preferLowEnergy: Bool = false   // prioritize low energy hobbies
@@ -95,6 +97,7 @@ struct UserInstructionsParser {
             adjustments.maxFactorDelta += 0.1 // mais pausas quando cansado
         }
         
+        adjustments.excludeHobbies = text.contains("sem hobbies") || text.contains("no hobbies")
         return adjustments
     }
 }

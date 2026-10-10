@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HobbyDetailView: View {
     @Bindable var hobby: Hobby
+    var onClassificationError: (Error) -> Void = { _ in }
     @State private var originalTitle: String = ""
     @State private var originalDescription: String = ""
     @State private var classifier = HobbyClassifier()
@@ -45,7 +46,11 @@ struct HobbyDetailView: View {
             }
             
             Task {
-                try? await classifier.classify(hobby: hobby)
+                do {
+                    try await classifier.classify(hobby: hobby)
+                } catch {
+                    onClassificationError(error)
+                }
             }
         }
     }

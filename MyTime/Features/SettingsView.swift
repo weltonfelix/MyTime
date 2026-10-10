@@ -19,6 +19,9 @@ struct SettingsView: View {
     @State private var newHobby: String = ""
     @FocusState private var isNewHobbyFocused: Bool
 
+    @State private var showClassificationError = false
+    @State private var classificationError = ""
+
     @State private var hobbyClassifier = HobbyClassifier()
 
     var body: some View {
@@ -62,7 +65,7 @@ struct SettingsView: View {
                         .lineLimit(5...10)
                     } footer: {
                         Text(
-                            "Describe how you like to organize your day. Would you like more or less time for your hobbies? Any specific constraints?"
+                            "Choose more, fewer, or no hobbies; a busier or calmer day; low-energy activities; or short hobby sessions. Exact schedules are not supported."
                         )
                     }
                 }
@@ -77,8 +80,13 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(
                 .inline
             )
+            .alert("Hobby classification failed", isPresented: $showClassificationError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(classificationError)
+            }
             .navigationDestination(for: Hobby.self) { hobby in
-                HobbyDetailView(hobby: hobby)
+                HobbyDetailView(hobby: hobby, onClassificationError: reportClassificationError)
             }
         }
     }
@@ -110,8 +118,17 @@ struct SettingsView: View {
         }
 
         Task {
-            try? await hobbyClassifier.classify(hobby: createdHobby)
+            do {
+                try await hobbyClassifier.classify(hobby: createdHobby)
+            } catch {
+                reportClassificationError(error)
+            }
         }
+    }
+
+    private func reportClassificationError(_ error: Error) {
+        classificationError = OnDeviceAI.message(for: error)
+        showClassificationError = true
     }
 
     func handleHobbyDeletion(indexSet: IndexSet) {
