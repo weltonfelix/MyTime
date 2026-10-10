@@ -145,11 +145,6 @@ struct ContentView: View {
                     .navigationTitle(activity.hobby?.title ?? "Timer")
             }
             .onAppear(perform: deleteOldRoutines)
-            .onAppear {
-                Task {
-                    await NotificationsService.shared.requestAuthorization()
-                }
-            }
         }
     }
 
