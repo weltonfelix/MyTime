@@ -280,14 +280,12 @@ struct ContentView: View {
 
 }
 
+#if DEBUG
 #Preview("Populated") {
-    do {
-        return ContentView()
-            .modelContainer(try mockContainer())
-    } catch {
-        return Text("Failed to create container: \(error.localizedDescription)")
-    }
+    ContentView()
+        .modelContainer(mockContainer())
 }
+#endif
 
 #Preview("Empty") {
     ContentView()
