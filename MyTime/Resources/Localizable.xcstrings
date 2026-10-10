@@ -1,6 +1,176 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Welcome to MyTime" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boas-vindas ao MyTime"
+          }
+        }
+      }
+    },
+    "Plan your day" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planeje seu dia"
+          }
+        }
+      }
+    },
+    "Make room for hobbies" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reserve tempo para seus hobbies"
+          }
+        }
+      }
+    },
+    "Focus one activity at a time" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concentre-se em uma atividade por vez"
+          }
+        }
+      }
+    },
+    "Know when time is up" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saiba quando o tempo acabar"
+          }
+        }
+      }
+    },
+    "Add your tasks and MyTime will organize them into a balanced daily routine." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicione suas tarefas e o MyTime vai organizá-las em uma rotina diária equilibrada."
+          }
+        }
+      }
+    },
+    "Enjoy hobby breaks between tasks. Add your hobbies and tell MyTime how you like to organize your day in Preferences." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aproveite pausas para seus hobbies entre as tarefas. Adicione seus hobbies e conte ao MyTime como você gosta de organizar seu dia em Preferências."
+          }
+        }
+      }
+    },
+    "Use Pomodoro sessions to focus on tasks and a timer to enjoy your hobby breaks. Open an activity in My Day to get started." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use sessões Pomodoro para se concentrar nas tarefas e um cronômetro para aproveitar suas pausas com hobbies. Abra uma atividade em Meu Dia para começar."
+          }
+        }
+      }
+    },
+    "Allow notifications to hear when a focus session or hobby timer finishes, even when MyTime is in the background." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permita notificações para ouvir um aviso quando uma sessão de foco ou um cronômetro de hobby terminar, mesmo com o MyTime em segundo plano."
+          }
+        }
+      }
+    },
+    "Routine generation requires Apple Intelligence enabled on a compatible device." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A geração de rotinas requer a Apple Intelligence ativada em um dispositivo compatível."
+          }
+        }
+      }
+    },
+    "Back" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar"
+          }
+        }
+      }
+    },
+    "Skip" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pular"
+          }
+        }
+      }
+    },
+    "Next" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próximo"
+          }
+        }
+      }
+    },
+    "Enable Notifications" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar Notificações"
+          }
+        }
+      }
+    },
+    "Not Now" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agora Não"
+          }
+        }
+      }
+    },
+    "Onboarding progress" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progresso da introdução"
+          }
+        }
+      }
+    },
+    "Step %lld of 4" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etapa %lld de 4"
+          }
+        }
+      }
+    },
     "" : {
       "localizations" : {
         "pt-BR" : {

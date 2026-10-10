@@ -10,9 +10,20 @@ import SwiftUI
 
 @main
 struct MyTimeApp: App {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
     var body: some Scene {
         WindowGroup {
-            ContentView().modelContainer(for: Routine.self)
+            Group {
+                if hasCompletedOnboarding {
+                    ContentView()
+                } else {
+                    OnboardingView {
+                        hasCompletedOnboarding = true
+                    }
+                }
+            }
+            .modelContainer(for: Routine.self)
         }
     }
 }
