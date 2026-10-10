@@ -44,9 +44,9 @@ The project follows a clean, modular structure:
 
 ## ⚙️ Requirements
 
-*   **iOS 18.0+** / **macOS 15.0+**
-*   **Xcode 16.0+**
-*   **Swift 6.0+** (with support for Apple Intelligence APIs like `LanguageModelSession` and `@Generable`)
+*   **iOS 26.0+**
+*   **Xcode 27.0+**
+*   The Swift toolchain bundled with Xcode 27 (including `LanguageModelSession` and `@Generable`)
 *   **Apple Intelligence** enabled on your test device/simulator.
 
 ---
@@ -58,11 +58,28 @@ The project follows a clean, modular structure:
     git clone https://github.com/weltonfelix/MyTime.git
     cd MyTime
     ```
-2.  **Open in Xcode**: Open `MyTime.xcodeproj` in Xcode 16.
+2.  **Open in Xcode**: Open `MyTime.xcodeproj` in Xcode 27.
 3.  **Enable Apple Intelligence**: Ensure that Apple Intelligence is active on your device or simulator to support task classification features.
 4.  **Run the Target**: Select the `MyTime` target and run it on an eligible iOS Simulator or physical device.
 
 ---
+
+## On-device interpretation and tests
+
+`SystemLanguageModel.default` uses the model provided by the installed OS, including
+its iOS 27 improvements. Requests classify one task or hobby at a time; a separate
+request interprets bounded preferences. Swift calculates the routine and time budget.
+If AI is unavailable or fails, the user can explicitly choose **Generate Basic Routine**.
+The previous routine is retained until a validated replacement saves successfully.
+
+Run the `MyTime` scheme's tests for validation, budgets, stale inputs, and SwiftData
+replacement/rollback. Live model tests are opt-in: set `MYTIME_RUN_MODEL_TESTS=1`
+as a build setting (or the test scheme environment variable) on an eligible test device.
+The test scheme uses an in-memory app store so test-host startup cannot change saved routines.
+A physical-device test run still installs the development build.
+The live fixtures cover English and Portuguese, negation, conflicting preferences,
+unsupported schedules, and repeated independent requests. Their inference latency is printed.
+Passing deterministic tests does not establish model accuracy on an iPhone.
 
 ## 📄 License
 

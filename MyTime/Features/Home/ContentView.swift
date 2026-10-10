@@ -5,17 +5,22 @@
 //  Created by Welton Felix on 15/05/26.
 //
 
-import FoundationModels
 import SwiftData
 import SwiftUI
 
 struct ContentView: View {
     @State private var showEditTasks = false
     @State private var showSettings = false
+    @State private var descriptionGenerator = HobbyDescriptionGenerator()
+    @State private var initialHobbies: Set<PersistentIdentifier> = []
+    @State private var awaitingRegenerationOffer = false
+    @State private var showRegenerationOffer = false
+    @State private var showHobbyError = false
+    @State private var failedGenerationPreservesCompletion = false
     @State private var showErrorAlert: Bool = false
 
-    @State private var showAINotAvailable: Bool = false
-    @State private var aiNotAvailableMessage: String?
+    @State private var generationMessage = ""
+    @State private var showPreferenceNotice = false
 
     @State private var isLoading: Bool = false
 
@@ -35,7 +40,11 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                if let routine, !routine.activities.isEmpty {
+                if isLoading {
+                    ProgressView("Preparing your day...")
+                        .padding()
+                        .accessibilityLabel("Preparing your day")
+                } else if let routine, !routine.activities.isEmpty {
                     List {
                         ForEach(
                             routine.activities.sorted(by: {
@@ -72,12 +81,7 @@ struct ContentView: View {
                     ).listStyle(.inset)
 
                 } else {
-                    if isLoading {
-                        VStack {
-                            ProgressView()
-                            Text("Preparing your day...")
-                        }
-                    } else {
+                    if !isLoading {
                         ContentUnavailableView {
                             VStack {
                                 ZStack {
@@ -124,19 +128,51 @@ struct ContentView: View {
                     if hasChanges { generateRoutine() }
                 })
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
+            .sheet(isPresented: $showSettings, onDismiss: {
+                awaitingRegenerationOffer = true
+                presentPreferencesOutcome()
+            }) {
+                SettingsView(descriptionGenerator: descriptionGenerator)
+            }
+            .onChange(of: descriptionGenerator.pending) { _, _ in presentPreferencesOutcome() }
+            .onChange(of: descriptionGenerator.errors) { _, _ in presentPreferencesOutcome() }
+            .onChange(of: isLoading) { _, _ in presentPreferencesOutcome() }
+            .onChange(of: showErrorAlert) { _, _ in presentPreferencesOutcome() }
+            .onChange(of: showPreferenceNotice) { _, _ in presentPreferencesOutcome() }
+            .alert("Regenerate routine?", isPresented: $showRegenerationOffer) {
+                Button("Regenerate routine") {
+                    generateRoutine(preserveCompletion: true)
+                }
+                Button("Keep routine", role: .cancel) {}
+            } message: {
+                Text("You added new hobbies. Would you like to update your routine to consider them?")
+            }
+            .alert("Could not prepare hobby details", isPresented: $showHobbyError) {
+                Button("OK", role: .cancel) {
+                    if !descriptionGenerator.errors.isEmpty { descriptionGenerator.errors.removeFirst() }
+                    showHobbyError = false
+                    presentPreferencesOutcome()
+                }
+            } message: {
+                Text(descriptionGenerator.errors.first ?? "")
             }
             .alert(
                 "There was an error generating your day",
                 isPresented: $showErrorAlert
             ) {
                 Button("Try Again") {
-                    generateRoutine()
+                    generateRoutine(preserveCompletion: failedGenerationPreservesCompletion)
                 }
+                Button("Generate Basic Routine") { generateRoutine(basic: true, preserveCompletion: failedGenerationPreservesCompletion) }
                 Button("Cancel", role: .cancel) {}
+            } message: {
+                Text(generationMessage + "\n\n" + String(localized: "Basic routines use local rules and reserve 30 minutes per task when estimating time for hobbies."))
             }
-            .alert(aiNotAvailableMessage ?? "Apple Inteligence is not available", isPresented: $showAINotAvailable) {}
+            .alert("Some preferences could not be applied", isPresented: $showPreferenceNotice) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("MyTime supports hobby amounts, available time, energy, and short sessions. Exact times, deadlines, and specific activity ordering are not supported.")
+            }
             .navigationDestination(for: MyTask.self) { task in
                 PomodoroView().navigationTitle(task.taskDescription)
             }
@@ -164,6 +200,8 @@ struct ContentView: View {
     }
 
     func showSettingsSheet() {
+        initialHobbies = Set(hobbies.map(\.persistentModelID))
+        awaitingRegenerationOffer = false
         showSettings = true
     }
 
@@ -187,60 +225,56 @@ struct ContentView: View {
         modelContext.delete(activity)
     }
 
-    func generateRoutine() {
-        guard SystemLanguageModel.default.isAvailable else {
-            aiNotAvailableMessage =
-                switch SystemLanguageModel.default.availability {
-                case .unavailable(.deviceNotEligible):
-                    String(
-                        localized:
-                            "This device is not eligible for Apple Intelligence"
-                    )
-                case .unavailable(.appleIntelligenceNotEnabled):
-                    String(
-                        localized:
-                            "You must enable Apple Intelligence in Settings"
-                    )
-                case .unavailable(.modelNotReady):
-                    String(localized: "Apple Intelligence is not ready")
-                case .unavailable:
-                    String(localized: "Unknown Apple Intelligence error")
-                default: ""
-                }
-            
-            showAINotAvailable = true
+    func presentPreferencesOutcome() {
+        guard !showSettings, !isLoading, !showErrorAlert, !showPreferenceNotice,
+              !showHobbyError, !showRegenerationOffer, descriptionGenerator.pending.isEmpty else { return }
+        if !descriptionGenerator.errors.isEmpty {
+            showHobbyError = true
             return
         }
+        guard awaitingRegenerationOffer else { return }
+        awaitingRegenerationOffer = false
+        showRegenerationOffer = HobbyRegeneration.shouldOffer(initial: initialHobbies,
+            current: Set(hobbies.map(\.persistentModelID)), routineDate: routine?.date)
+    }
 
+    func generateRoutine(basic: Bool = false, preserveCompletion: Bool = false) {
+        guard !isLoading else { return }
         isLoading = true
-        Task {
+        failedGenerationPreservesCompletion = preserveCompletion
+        Task { @MainActor in
+            defer { isLoading = false }
             do {
-                for routine in routines {
-                    modelContext.delete(routine)
+                try modelContext.save()
+                let inputTasks = try modelContext.fetch(FetchDescriptor<MyTask>())
+                let inputHobbies = try modelContext.fetch(FetchDescriptor<Hobby>())
+                let inputInstructions = instructions
+                let snapshot = RoutineSnapshot(tasks: inputTasks, hobbies: inputHobbies, instructions: inputInstructions)
+                let preferences: UserInstructionsParser.Adjustments
+                let classifiedTasks: [MatchedTask]
+                var unsupported = false
+                if basic {
+                    preferences = UserInstructionsParser.parse(inputInstructions)
+                    classifiedTasks = inputTasks.map { MatchedTask(task: $0, classification: nil) }
+                } else {
+                    try OnDeviceAI.checkAvailability()
+                    let interpretation = try await PreferenceInterpreter.interpret(inputInstructions)
+                    preferences = interpretation.adjustments
+                    unsupported = interpretation.hasUnsupportedRequests
+                    classifiedTasks = try await tasksClassifier.classify(tasks: inputTasks)
                 }
-                try modelContext.save()
-
-                let classifiedTasks = try await tasksClassifier.classify(
-                    tasks: tasks
-                )
-
-                let routineGenerator = RoutineGenerator(
-                    instructions: instructions
-                )
-
-                let newRoutine = routineGenerator.generate(
-                    tasks: classifiedTasks,
-                    hobbies: hobbies
-                )
-                modelContext.insert(newRoutine)
-
-                try modelContext.save()
-
+                try Task.checkCancellation()
+                let current = RoutineSnapshot(
+                    tasks: try modelContext.fetch(FetchDescriptor<MyTask>()),
+                    hobbies: try modelContext.fetch(FetchDescriptor<Hobby>()), instructions: instructions)
+                guard snapshot == current else { throw OnDeviceAI.Failure.staleInput }
+                let draft = try RoutineGenerator(preferences: preferences).generate(tasks: classifiedTasks, hobbies: inputHobbies)
+                try RoutinePersistence.replace(with: draft, in: modelContext, preserveCompletion: preserveCompletion)
+                showPreferenceNotice = unsupported
             } catch {
-                print(error.localizedDescription)
+                generationMessage = OnDeviceAI.message(for: error)
                 showErrorAlert = true
             }
-            isLoading = false
         }
     }
 

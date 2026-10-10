@@ -121,19 +121,12 @@ class HobbySelector {
         return selected
     }
 
-    private func roundToBase(_ value: Int) -> Int {
-        Int(ceil(Double(value) / Double(config.roundingBase)))
-            * config.roundingBase
-    }
-
     /**
         Distributes available time among selected hobbies, assigning each a concrete duration.
 
-        Duration is calculated as a weighted blend of uniform distribution (equal split)
-        and proportional distribution (based on minimum duration ratio), then rounded
-        to the nearest multiple of `roundingBase`.
-
-        The last hobby absorbs any remaining minutes from rounding differences.
+        Reserve every minimum duration first, then divide the remaining time using
+        uniform and proportional weights. Round extra allocations down; the last hobby
+        absorbs the remainder without exceeding the budget.
 
         - Parameter maxMinutes: total minutes to distribute among hobbies
         - Parameter hobbies: the hobbies to assign durations to, in order
@@ -145,36 +138,22 @@ class HobbySelector {
     {
         guard !hobbies.isEmpty else { return [] }
 
-        let totalMinimum = hobbies.reduce(0) {
-            $0 + ($1.minimumDurationInMinutes ?? config.defaultMinimumDuration)
+        let minimums = hobbies.map { $0.minimumDurationInMinutes ?? config.defaultMinimumDuration }
+        let totalMinimum = minimums.reduce(0, +)
+        guard totalMinimum <= maxMinutes else { return [] }
+        if config.preferShortSessions {
+            return zip(hobbies, minimums).map { SelectedHobby(hobby: $0, durationInMinutes: $1) }
         }
-        let basePerHobby = maxMinutes / hobbies.count
-
+        let extra = maxMinutes - totalMinimum
+        var remainingExtra = extra
         var result: [SelectedHobby] = []
-        var distributed = 0
-
-        for (i, hobby) in hobbies.enumerated() {
-            let minimum =
-                hobby.minimumDurationInMinutes ?? config.defaultMinimumDuration
-
-            let duration: Int
-            if i == hobbies.count - 1 {
-                duration = roundToBase(max(minimum, maxMinutes - distributed))
-            } else {
-                let ratio = Double(minimum) / Double(totalMinimum)
-                let proportional = Int(Double(maxMinutes) * ratio)
-                let blended =
-                    Double(basePerHobby) * config.uniformWeight + Double(
-                        proportional
-                    )
-                    * config.proportionalWeight
-                duration = roundToBase(max(minimum, Int(blended)))
-            }
-
-            distributed += duration
-            result.append(
-                SelectedHobby(hobby: hobby, durationInMinutes: duration)
-            )
+        for (index, hobby) in hobbies.enumerated() {
+            let share = config.uniformWeight / Double(hobbies.count)
+                + config.proportionalWeight * Double(minimums[index]) / Double(totalMinimum)
+            let allocation = index == hobbies.count - 1 ? remainingExtra
+                : min(remainingExtra, Int(Double(extra) * share) / config.roundingBase * config.roundingBase)
+            result.append(SelectedHobby(hobby: hobby, durationInMinutes: minimums[index] + allocation))
+            remainingExtra -= allocation
         }
 
         return result
@@ -201,14 +180,17 @@ class HobbySelector {
         tasks: [MatchedTask],
         hobbies: [Hobby]
     ) -> [SelectedHobby] {
+        guard !hobbies.isEmpty, !config.excludeHobbies else { return [] }
+        let hobbies = hobbies.filter { (1...720).contains($0.minimumDurationInMinutes ?? config.defaultMinimumDuration) }
         guard !hobbies.isEmpty else { return [] }
-        
+
         // MARK: - Time budget
 
         let taskLoad = tasks.reduce(0) {
-            $0 + ($1.classification?.estimatedDuration ?? 0)
+            $0 + ($1.classification?.estimatedDuration ?? 30)
         }
-        let remainingMinutes = config.availableDayMinutes - taskLoad
+        let remainingMinutes = max(0, config.availableDayMinutes - taskLoad)
+        guard remainingMinutes > 0 else { return [] }
 
         let cognitiveScore = loadEvaluator.cognitiveScore(tasks: tasks)
         let physicalScore = loadEvaluator.physicalScore(tasks: tasks)
@@ -235,6 +217,8 @@ class HobbySelector {
             Double(remainingMinutes)
                 * min(cognitiveFactor + physicalFactor, config.effectiveMaxFactor)
         )
+
+        guard maxHobbyMinutes > 0 else { return [] }
 
         // MARK: - Hobby splitting
 

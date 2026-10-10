@@ -10,6 +10,8 @@ import Foundation
 struct HobbySelectorConfiguration {
     var availableDayMinutes: Int
 
+    var excludeHobbies = false
+    var preferShortSessions = false
     var preferLowEnergy: Bool = false
     var maxFactorDelta: Double = 0
 
@@ -62,6 +64,8 @@ struct HobbySelectorConfiguration {
     ) {
         self.availableDayMinutes =
             availableDayMinutes + (adjustments?.availableMinutesDelta ?? 0)
+        self.excludeHobbies = adjustments?.excludeHobbies ?? false
+        self.preferShortSessions = adjustments?.preferShortSessions ?? false
         self.preferLowEnergy = adjustments?.preferLowEnergy ?? false
         self.maxFactorDelta = adjustments?.maxFactorDelta ?? 0
     }
