@@ -38,8 +38,7 @@ struct ContentView: View {
                     ProgressView("Preparing your day...")
                         .padding()
                         .accessibilityLabel("Preparing your day")
-                }
-                if let routine, !routine.activities.isEmpty {
+                } else if let routine, !routine.activities.isEmpty {
                     List {
                         ForEach(
                             routine.activities.sorted(by: {
