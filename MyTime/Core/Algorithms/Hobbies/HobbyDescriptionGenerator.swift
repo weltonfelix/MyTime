@@ -12,6 +12,7 @@ struct SuggestedHobbyDescription {
 @Observable
 final class HobbyDescriptionGenerator {
     private(set) var pending: Set<PersistentIdentifier> = []
+    var errors: [String] = []
 
     static func suggest(title: String, language: String) async throws -> String {
         try OnDeviceAI.checkAvailability()

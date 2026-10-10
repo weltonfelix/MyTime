@@ -11,6 +11,12 @@ import SwiftUI
 struct ContentView: View {
     @State private var showEditTasks = false
     @State private var showSettings = false
+    @State private var descriptionGenerator = HobbyDescriptionGenerator()
+    @State private var initialHobbies: Set<PersistentIdentifier> = []
+    @State private var awaitingRegenerationOffer = false
+    @State private var showRegenerationOffer = false
+    @State private var showHobbyError = false
+    @State private var failedGenerationPreservesCompletion = false
     @State private var showErrorAlert: Bool = false
 
     @State private var generationMessage = ""
@@ -122,17 +128,42 @@ struct ContentView: View {
                     if hasChanges { generateRoutine() }
                 })
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
+            .sheet(isPresented: $showSettings, onDismiss: {
+                awaitingRegenerationOffer = true
+                presentPreferencesOutcome()
+            }) {
+                SettingsView(descriptionGenerator: descriptionGenerator)
+            }
+            .onChange(of: descriptionGenerator.pending) { _, _ in presentPreferencesOutcome() }
+            .onChange(of: descriptionGenerator.errors) { _, _ in presentPreferencesOutcome() }
+            .onChange(of: isLoading) { _, _ in presentPreferencesOutcome() }
+            .onChange(of: showErrorAlert) { _, _ in presentPreferencesOutcome() }
+            .onChange(of: showPreferenceNotice) { _, _ in presentPreferencesOutcome() }
+            .alert("Regenerate routine?", isPresented: $showRegenerationOffer) {
+                Button("Regenerate routine") {
+                    generateRoutine(preserveCompletion: true)
+                }
+                Button("Keep routine", role: .cancel) {}
+            } message: {
+                Text("You added new hobbies. Would you like to update your routine to consider them?")
+            }
+            .alert("Could not prepare hobby details", isPresented: $showHobbyError) {
+                Button("OK", role: .cancel) {
+                    if !descriptionGenerator.errors.isEmpty { descriptionGenerator.errors.removeFirst() }
+                    showHobbyError = false
+                    presentPreferencesOutcome()
+                }
+            } message: {
+                Text(descriptionGenerator.errors.first ?? "")
             }
             .alert(
                 "There was an error generating your day",
                 isPresented: $showErrorAlert
             ) {
                 Button("Try Again") {
-                    generateRoutine()
+                    generateRoutine(preserveCompletion: failedGenerationPreservesCompletion)
                 }
-                Button("Generate Basic Routine") { generateRoutine(basic: true) }
+                Button("Generate Basic Routine") { generateRoutine(basic: true, preserveCompletion: failedGenerationPreservesCompletion) }
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text(generationMessage + "\n\n" + String(localized: "Basic routines use local rules and reserve 30 minutes per task when estimating time for hobbies."))
@@ -169,6 +200,8 @@ struct ContentView: View {
     }
 
     func showSettingsSheet() {
+        initialHobbies = Set(hobbies.map(\.persistentModelID))
+        awaitingRegenerationOffer = false
         showSettings = true
     }
 
@@ -192,9 +225,23 @@ struct ContentView: View {
         modelContext.delete(activity)
     }
 
-    func generateRoutine(basic: Bool = false) {
+    func presentPreferencesOutcome() {
+        guard !showSettings, !isLoading, !showErrorAlert, !showPreferenceNotice,
+              !showHobbyError, !showRegenerationOffer, descriptionGenerator.pending.isEmpty else { return }
+        if !descriptionGenerator.errors.isEmpty {
+            showHobbyError = true
+            return
+        }
+        guard awaitingRegenerationOffer else { return }
+        awaitingRegenerationOffer = false
+        showRegenerationOffer = HobbyRegeneration.shouldOffer(initial: initialHobbies,
+            current: Set(hobbies.map(\.persistentModelID)), routineDate: routine?.date)
+    }
+
+    func generateRoutine(basic: Bool = false, preserveCompletion: Bool = false) {
         guard !isLoading else { return }
         isLoading = true
+        failedGenerationPreservesCompletion = preserveCompletion
         Task { @MainActor in
             defer { isLoading = false }
             do {
@@ -222,7 +269,7 @@ struct ContentView: View {
                     hobbies: try modelContext.fetch(FetchDescriptor<Hobby>()), instructions: instructions)
                 guard snapshot == current else { throw OnDeviceAI.Failure.staleInput }
                 let draft = try RoutineGenerator(preferences: preferences).generate(tasks: classifiedTasks, hobbies: inputHobbies)
-                try RoutinePersistence.replace(with: draft, in: modelContext)
+                try RoutinePersistence.replace(with: draft, in: modelContext, preserveCompletion: preserveCompletion)
                 showPreferenceNotice = unsupported
             } catch {
                 generationMessage = OnDeviceAI.message(for: error)

@@ -421,6 +421,16 @@
         }
       }
     },
+    "Keep routine" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manter rotina"
+          }
+        }
+      }
+    },
     "Know when time is up" : {
       "localizations" : {
         "pt-BR" : {
@@ -580,6 +590,26 @@
           "stringUnit" : {
             "state" : "machine_translated",
             "value" : "Lê sua rotina diária"
+          }
+        }
+      }
+    },
+    "Regenerate routine" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regerar rotina"
+          }
+        }
+      }
+    },
+    "Regenerate routine?" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regerar a rotina?"
           }
         }
       }
@@ -844,6 +874,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "O que vamos fazer hoje?"
+          }
+        }
+      }
+    },
+    "You added new hobbies. Would you like to update your routine to consider them?" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Você adicionou novos hobbies. Quer atualizar sua rotina para considerá-los?"
           }
         }
       }

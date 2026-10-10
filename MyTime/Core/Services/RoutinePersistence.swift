@@ -3,6 +3,7 @@ import SwiftData
 @MainActor
 enum RoutinePersistence {
     static func replace(with draft: [PlannedActivity], in context: ModelContext,
+                        preserveCompletion: Bool = false,
                         save: (ModelContext) throws -> Void = { try $0.save() }) throws {
         let tasks = try context.fetch(FetchDescriptor<MyTask>())
         let hobbies = try context.fetch(FetchDescriptor<Hobby>())
@@ -13,6 +14,8 @@ enum RoutinePersistence {
         context.autosaveEnabled = false
         defer { context.autosaveEnabled = autosave }
         let oldRoutines = try context.fetch(FetchDescriptor<Routine>())
+        let completedTasks = Set(oldRoutines.flatMap { $0.activities }.filter(\.isCompleted).compactMap { $0.task?.persistentModelID })
+        let completedHobbies = Set(oldRoutines.flatMap { $0.activities }.filter(\.isCompleted).compactMap { $0.hobby?.persistentModelID })
         let previousActivities = oldRoutines.map { ($0, $0.activities) }
         let previousHobbyActivities = hobbies.map { ($0, $0.activities) }
         let previousLinks = oldRoutines.flatMap { routine in
@@ -28,8 +31,12 @@ enum RoutinePersistence {
                 context.delete(routine)
             }
             let activities = draft.enumerated().map { index, item in
-                if let task = item.task { return Activity(task: task, order: index) }
-                return Activity(hobby: item.hobby, durationInMin: item.durationInMin, order: index)
+                if let task = item.task {
+                    return Activity(task: task, isCompleted: preserveCompletion && completedTasks.contains(task.persistentModelID), order: index)
+                }
+                let activity = Activity(hobby: item.hobby, durationInMin: item.durationInMin, order: index)
+                activity.isCompleted = preserveCompletion && item.hobby.map { completedHobbies.contains($0.persistentModelID) } == true
+                return activity
             }
             context.insert(Routine(activities: activities))
             try save(context)

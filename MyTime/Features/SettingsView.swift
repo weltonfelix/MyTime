@@ -19,10 +19,7 @@ struct SettingsView: View {
     @State private var newHobby: String = ""
     @FocusState private var isNewHobbyFocused: Bool
 
-    @State private var showClassificationError = false
-    @State private var classificationError = ""
-
-    @State private var descriptionGenerator = HobbyDescriptionGenerator()
+    @State var descriptionGenerator = HobbyDescriptionGenerator()
 
     var body: some View {
         NavigationStack {
@@ -86,12 +83,12 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(
                 .inline
             )
-            .alert("Could not prepare hobby details", isPresented: $showClassificationError) {
+            .alert("Could not prepare hobby details", isPresented: Binding(get: { !descriptionGenerator.errors.isEmpty }, set: { _ in })) {
                 Button("OK", role: .cancel) {
-
+                    if !descriptionGenerator.errors.isEmpty { descriptionGenerator.errors.removeFirst() }
                 }
             } message: {
-                Text(classificationError)
+                Text(descriptionGenerator.errors.first ?? "")
             }
             .navigationDestination(for: Hobby.self) { hobby in
                 HobbyDetailView(hobby: hobby, descriptionGenerator: descriptionGenerator, onClassificationError: reportClassificationError)
@@ -127,15 +124,13 @@ struct SettingsView: View {
 
         Task {
             await descriptionGenerator.prepare(createdHobby) { message in
-                classificationError = message
-                showClassificationError = true
+                descriptionGenerator.errors.append(message)
             }
         }
     }
 
     private func reportClassificationError(_ error: Error) {
-        classificationError = OnDeviceAI.message(for: error)
-        showClassificationError = true
+        descriptionGenerator.errors.append(OnDeviceAI.message(for: error))
     }
 
     func handleHobbyDeletion(indexSet: IndexSet) {
