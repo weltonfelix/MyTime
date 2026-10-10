@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct HobbyDetailView: View {
     @Bindable var hobby: Hobby
+    var descriptionGenerator: HobbyDescriptionGenerator? = nil
     var onClassificationError: (Error) -> Void = { _ in }
     @State private var originalTitle: String = ""
     @State private var originalDescription: String = ""
@@ -18,6 +20,9 @@ struct HobbyDetailView: View {
         VStack {
             List {
                 Section {
+                    if descriptionGenerator?.pending.contains(hobby.persistentModelID) == true {
+                        ProgressView("Preparing hobby details")
+                    }
                     TextField(
                         "Details",
                         text: $hobby.hobbyDescription,
@@ -26,7 +31,7 @@ struct HobbyDetailView: View {
                     .lineLimit(5...10)
                 } footer: {
                     Text(
-                        "Tell a bit about this hobby. When do you prefer to do it? Do you enjoy it alone or with others?"
+                        "The suggested description explains the activity. Edit it to add details relevant to your hobby."
                     )
                 }
             }
@@ -37,6 +42,7 @@ struct HobbyDetailView: View {
             originalDescription = hobby.hobbyDescription
         }
         .onDisappear {
+            guard descriptionGenerator?.pending.contains(hobby.persistentModelID) != true else { return }
             let titleChanged = hobby.title != originalTitle
             let descriptionChanged = hobby.hobbyDescription != originalDescription
             let notClassified = hobby.energyLevel == nil || hobby.minimumDurationInMinutes == nil

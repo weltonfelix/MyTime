@@ -22,7 +22,7 @@ struct SettingsView: View {
     @State private var showClassificationError = false
     @State private var classificationError = ""
 
-    @State private var hobbyClassifier = HobbyClassifier()
+    @State private var descriptionGenerator = HobbyDescriptionGenerator()
 
     var body: some View {
         NavigationStack {
@@ -31,7 +31,13 @@ struct SettingsView: View {
                     Section("Hobbies") {
                         ForEach(hobbies) { hobby in
                             NavigationLink(value: hobby) {
-                                Text(hobby.title)
+                                HStack {
+                                    Text(hobby.title)
+                                    Spacer()
+                                    if descriptionGenerator.pending.contains(hobby.persistentModelID) {
+                                        ProgressView().accessibilityLabel("Preparing hobby details")
+                                    }
+                                }
                             }
                         }.onDelete(perform: handleHobbyDeletion)
                         if isAdding {
@@ -80,13 +86,15 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(
                 .inline
             )
-            .alert("Hobby classification failed", isPresented: $showClassificationError) {
-                Button("OK", role: .cancel) {}
+            .alert("Could not prepare hobby details", isPresented: $showClassificationError) {
+                Button("OK", role: .cancel) {
+
+                }
             } message: {
                 Text(classificationError)
             }
             .navigationDestination(for: Hobby.self) { hobby in
-                HobbyDetailView(hobby: hobby, onClassificationError: reportClassificationError)
+                HobbyDetailView(hobby: hobby, descriptionGenerator: descriptionGenerator, onClassificationError: reportClassificationError)
             }
         }
     }
@@ -118,10 +126,9 @@ struct SettingsView: View {
         }
 
         Task {
-            do {
-                try await hobbyClassifier.classify(hobby: createdHobby)
-            } catch {
-                reportClassificationError(error)
+            await descriptionGenerator.prepare(createdHobby) { message in
+                classificationError = message
+                showClassificationError = true
             }
         }
     }
