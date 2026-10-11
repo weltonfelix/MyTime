@@ -51,8 +51,8 @@ final class TimerViewModel {
     }
 
     func pauseTimer() {
-        timerStartDate = nil
         remainingOnPause = remainingTime(at: .now)
+        timerStartDate = nil
         NotificationsService.shared.removeAll()
     }
 
