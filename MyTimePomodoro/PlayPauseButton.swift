@@ -17,7 +17,7 @@ struct PlayPauseButton: View {
         Button(intent: PauseTimerIntent(activityID: context.activityID)) {
             Image(systemName: isRunning ? "pause" : "play")
         }
-        .accessibilityLabel(isRunning ? "Pause" : "Continue")
+        .accessibilityLabel(isRunning ? Text("Pause") : Text("Continue"))
         .labelStyle(.iconOnly)
         .tint(.accent)
         .buttonBorderShape(.circle)

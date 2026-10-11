@@ -9,11 +9,22 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
+    private enum GenerationFocus: Hashable {
+        case preparing
+        case activity(PersistentIdentifier)
+        case empty
+    }
+
+    @AccessibilityFocusState(for: .voiceOver) private var generationFocus: GenerationFocus?
+    @State private var shouldAnnounceRoutineReady = false
+    @State private var hobbyForOptions: Activity?
+    @State private var showHobbyOptions = false
     @State private var path = NavigationPath()
     private let pomodoro = PomodoroViewModel.shared
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var showEditTasks = false
+    @State private var regenerateAfterEditingTasks = false
     @State private var showSettings = false
     @State private var descriptionGenerator = HobbyDescriptionGenerator()
     @State private var initialHobbies: Set<PersistentIdentifier> = []
@@ -48,6 +59,7 @@ struct ContentView: View {
                     ProgressView("Preparing your day...")
                         .padding()
                         .accessibilityLabel("Preparing your day")
+                        .accessibilityFocused($generationFocus, equals: .preparing)
                 } else if let routine, !routine.activities.isEmpty {
                     List {
                         ForEach(
@@ -59,6 +71,15 @@ struct ContentView: View {
                                 NavigationLink(value: task) {
                                     TaskRow(activity: activity)
                                 }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text(task.taskDescription))
+                                .accessibilityFocused($generationFocus, equals: .activity(activity.persistentModelID))
+                                .accessibilityValue(activity.isCompleted ? Text("Completed") : Text("Not completed"))
+                                .accessibilityHint("Opens the Pomodoro timer")
+                                .accessibilityAction { path.append(task) }
+                                .accessibilityAction(named: activity.isCompleted ? Text("Mark as incomplete") : Text("Mark as complete")) {
+                                    activity.isCompleted.toggle()
+                                }
                             } else if activity.hobby != nil {
                                 NavigationLink(value: activity) {
                                     HobbyRow(
@@ -66,23 +87,33 @@ struct ContentView: View {
                                     ) {
                                         deleteHobbyActivity(activity)
                                     }
-                                }.listRowBackground(
+                                }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text(activity.hobby?.title ?? ""))
+                                .accessibilityFocused($generationFocus, equals: .activity(activity.persistentModelID))
+                                .accessibilityValue(Text("\((TimeInterval((activity.durationInMin ?? 0) * 60)).formattedForAccessibility). \(String(localized: activity.isCompleted ? "Completed" : "Not completed"))"))
+                                .accessibilityAction(named: activity.isCompleted ? Text("Mark as incomplete") : Text("Mark as complete")) {
+                                    activity.isCompleted.toggle()
+                                }
+                                .accessibilityHint("Opens the hobby timer")
+                                .accessibilityAction { path.append(activity) }
+                                .accessibilityAction(named: Text("Replace or remove hobby")) {
+                                    hobbyForOptions = activity
+                                    showHobbyOptions = true
+                                }
+                                .listRowBackground(
                                     LinearGradient.hobbyGradient.opacity(0.15)
                                 )
                             }
                         }
                         .onMove(perform: moveActivity)
                         .listRowSeparator(.hidden)
+                        .listRowInsets(
+                            EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 16)
+                        )
                     }
                     .animation(.default, value: routine.activities.count)
-                    .listRowInsets(
-                        EdgeInsets(
-                            top: 0,
-                            leading: 0,
-                            bottom: 0,
-                            trailing: 16
-                        )
-                    ).listStyle(.inset)
+                    .listStyle(.inset)
 
                 } else {
                     if !isLoading {
@@ -107,8 +138,21 @@ struct ContentView: View {
                         } actions: {
                             Button("Add Tasks", action: showTasksSheet)
                         }
+                        .accessibilityFocused($generationFocus, equals: .empty)
                     }
                 }
+            }
+            .task(id: generationFocusTarget) {
+                updateGenerationAccessibilityFocus()
+            }
+            .confirmationDialog("Replace or remove hobby", isPresented: $showHobbyOptions, titleVisibility: .visible) {
+                ForEach(hobbies) { hobby in
+                    Button(hobby.title) { hobbyForOptions?.hobby = hobby }
+                }
+                Button("Remove", role: .destructive) {
+                    if let activity = hobbyForOptions { deleteHobbyActivity(activity) }
+                }
+                Button("Cancel", role: .cancel) {}
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -127,10 +171,16 @@ struct ContentView: View {
                     .dateTime.weekday(.wide).month(.wide).day(.defaultDigits)
                 )
             )
-            .sheet(isPresented: $showEditTasks) {
+            .sheet(isPresented: $showEditTasks, onDismiss: {
+                if regenerateAfterEditingTasks {
+                    regenerateAfterEditingTasks = false
+                    generateRoutine(preserveCompletion: true)
+                }
+                updateGenerationAccessibilityFocus()
+            }) {
                 EditTasksView(onSubmit: { hasChanges in
                     if hasChanges || (routine == nil && !tasks.isEmpty) {
-                        generateRoutine(preserveCompletion: true)
+                        regenerateAfterEditingTasks = true
                     }
                 })
             }
@@ -233,6 +283,29 @@ struct ContentView: View {
         }
     }
 
+    private var generationFocusTarget: GenerationFocus? {
+        guard !showEditTasks, !showSettings, !showRegenerationOffer,
+              !showErrorAlert, !showPreferenceNotice, !showHobbyError, path.isEmpty else { return nil }
+        if isLoading { return .preparing }
+        guard shouldAnnounceRoutineReady else { return nil }
+        if let first = routine?.activities.sorted(by: { $0.order < $1.order })
+            .first(where: { $0.task != nil || $0.hobby != nil }) {
+            return .activity(first.persistentModelID)
+        }
+        return .empty
+    }
+
+    private func updateGenerationAccessibilityFocus() {
+        guard let target = generationFocusTarget else { return }
+        generationFocus = target
+        if shouldAnnounceRoutineReady && !isLoading {
+            shouldAnnounceRoutineReady = false
+            var announcement = AttributedString(String(localized: "Your day is ready"))
+            announcement.accessibilitySpeechAnnouncementPriority = .high
+            AccessibilityNotification.Announcement(announcement).post()
+        }
+    }
+
     func deleteOldRoutines() {
         if let routine, !Calendar.current.isDateInToday(routine.date) {
             routines.forEach(modelContext.delete)
@@ -287,6 +360,8 @@ struct ContentView: View {
 
     func generateRoutine(basic: Bool = false, preserveCompletion: Bool = false) {
         guard !isLoading else { return }
+        shouldAnnounceRoutineReady = false
+        generationFocus = nil
         isLoading = true
         failedGenerationPreservesCompletion = preserveCompletion
         Task { @MainActor in
@@ -317,6 +392,7 @@ struct ContentView: View {
                 guard snapshot == current else { throw OnDeviceAI.Failure.staleInput }
                 let draft = try RoutineGenerator(preferences: preferences).generate(tasks: classifiedTasks, hobbies: inputHobbies)
                 try RoutinePersistence.replace(with: draft, in: modelContext, preserveCompletion: preserveCompletion)
+                shouldAnnounceRoutineReady = true
                 showPreferenceNotice = unsupported
             } catch {
                 generationMessage = OnDeviceAI.message(for: error)

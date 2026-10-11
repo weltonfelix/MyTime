@@ -11,7 +11,7 @@ struct TimerControls: View {
     @State var vm: TimerViewModel
     let date: Date
 
-    private var buttonLabel: String {
+    private var buttonLabel: LocalizedStringKey {
         if vm.isEnded {
             return "Restart"
         }
@@ -33,6 +33,8 @@ struct TimerControls: View {
             )
             .font(.system(size: 64))
             .monospacedDigit()
+            .accessibilityLabel("Time remaining")
+            .accessibilityValue(Text(vm.displayTime(at: date).formattedForAccessibility))
             VStack(spacing: 16) {
                 HStack(spacing: 8) {
                     ProgressIndicator(
@@ -82,6 +84,16 @@ struct TimerView: View {
         .navigationBarTitleDisplayMode(
             .inline
         )
+        .onChange(of: vm.isTimerRunning) { _, running in
+            guard vm.isActive else { return }
+            let remaining = vm.displayTime(at: .now).formattedForAccessibility
+            let announcement = running
+                ? String(localized: "Timer running. \(remaining) remaining. Pause timer.")
+                : String(localized: "Timer paused. \(remaining) remaining. Resume timer.")
+            var spokenAnnouncement = AttributedString(announcement)
+            spokenAnnouncement.accessibilitySpeechAnnouncementPriority = .high
+            AccessibilityNotification.Announcement(spokenAnnouncement).post()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(

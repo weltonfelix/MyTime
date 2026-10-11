@@ -25,8 +25,14 @@ struct TaskRow: View {
                 .contentTransition(
                     .symbolEffect(.replace)
                 )
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
+            .accessibilityLabel(activity.isCompleted
+                ? Text("Mark \(activity.task?.taskDescription ?? "") as incomplete")
+                : Text("Mark \(activity.task?.taskDescription ?? "") as complete"))
+            .accessibilityValue(activity.isCompleted ? Text("Completed") : Text("Not completed"))
             .foregroundStyle(activity.isCompleted ? .accent : .secondary)
             .sensoryFeedback(.success, trigger: activity.isCompleted) {
                 _, new in new

@@ -35,6 +35,28 @@
         }
       }
     },
+    "%@. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "0 seconds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0 segundos"
+          }
+        }
+      }
+    },
     "0:00" : {
       "shouldTranslate" : false
     },
@@ -203,6 +225,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fechar"
+          }
+        }
+      }
+    },
+    "Completed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concluído"
           }
         }
       }
@@ -625,6 +658,50 @@
         }
       }
     },
+    "Mark %@ as complete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marcar %@ como concluído"
+          }
+        }
+      }
+    },
+    "Mark %@ as incomplete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marcar %@ como não concluído"
+          }
+        }
+      }
+    },
+    "Mark as complete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marcar como concluído"
+          }
+        }
+      }
+    },
+    "Mark as incomplete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marcar como não concluído"
+          }
+        }
+      }
+    },
     "Meditating" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -681,6 +758,17 @@
         }
       }
     },
+    "Not completed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não concluído"
+          }
+        }
+      }
+    },
     "Not Now" : {
       "localizations" : {
         "pt-BR" : {
@@ -719,6 +807,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Progresso da introdução"
+          }
+        }
+      }
+    },
+    "Opens the hobby timer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre o temporizador do hobby"
+          }
+        }
+      }
+    },
+    "Opens the Pomodoro timer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre o temporizador Pomodoro"
           }
         }
       }
@@ -775,6 +885,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Jogar videogame"
+          }
+        }
+      }
+    },
+    "Pomodoro paused. Phase: %@. %@ remaining. Resume Pomodoro." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomodoro pausado. Fase: %1$@. Restam %2$@. Retomar Pomodoro."
+          }
+        }
+      }
+    },
+    "Pomodoro running. Phase: %@. %@ remaining. Pause Pomodoro." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomodoro em andamento. Fase: %1$@. Restam %2$@. Pausar Pomodoro."
           }
         }
       }
@@ -896,6 +1028,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remover"
+          }
+        }
+      }
+    },
+    "Replace or remove hobby" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Substituir ou remover hobby"
           }
         }
       }
@@ -1128,6 +1271,39 @@
         }
       }
     },
+    "Time remaining" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo restante"
+          }
+        }
+      }
+    },
+    "Timer paused. %@ remaining. Resume timer." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temporizador pausado. Restam %@. Retomar temporizador."
+          }
+        }
+      }
+    },
+    "Timer running. %@ remaining. Pause timer." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temporizador em andamento. Restam %@. Pausar temporizador."
+          }
+        }
+      }
+    },
     "Try Again" : {
       "comment" : "A button that triggers a new routine generation.",
       "isCommentAutoGenerated" : true,
@@ -1189,6 +1365,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Você não tem tarefas ou hobbies para hoje."
+          }
+        }
+      }
+    },
+    "Your day is ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu dia está pronto"
           }
         }
       }
