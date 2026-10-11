@@ -7,7 +7,7 @@
 
 import Foundation
 import FoundationModels
-import Playgrounds
+import SwiftData
 
 @Generable(description: "Hobby classification")
 struct ClassifiedHobby {
@@ -16,14 +16,12 @@ struct ClassifiedHobby {
 
     @Guide(
         description:
-            "Minimum meaningful duration in minutes — below this the hobby isn't worth doing"
+            "Minimum meaningful duration in minutes — below this the hobby isn't worth doing",
+        .range(1...720)
     )
     var minimumDurationInMinutes: Int
 
-    //    @Guide(
-    //        description: "Estimated typical duration in minutes based on the hobby"
-    //    )
-    //    var estimatedDuration: Int
+
 }
 
 @Generable
@@ -38,8 +36,6 @@ enum GenerableEnergyLevel: String {
 }
 
 class HobbyClassifier {
-    private let session: LanguageModelSession
-
     private static let systemPrompt = """
             You are a hobby classifier. For the provided hobby, analyze its
             title and description, classify it and estimate durations.
@@ -63,47 +59,31 @@ class HobbyClassifier {
             minimumDuration should be the shortest time the hobby is still meaningful.
         """
 
-    init() {
-        session = LanguageModelSession(
-            instructions: HobbyClassifier.systemPrompt
-        )
-    }
-
     func classify(hobby: Hobby) async throws {
-        let classificationPrompt = """
-            Classify this hobby:
-            - \(hobby.title) \(hobby.hobbyDescription.isEmpty ? "" : ": \(hobby.hobbyDescription)")
-            """
-
+        let title = hobby.title
+        let description = hobby.hobbyDescription
+        try OnDeviceAI.checkAvailability()
+        let session = LanguageModelSession(instructions: Self.systemPrompt + OnDeviceAI.inputInstructions)
         let response = try await session.respond(
-            to: classificationPrompt,
+            to: OnDeviceAI.encodeInput(["title": title, "description": description]),
             generating: ClassifiedHobby.self,
+            options: GenerationOptions(samplingMode: .greedy)
         )
-
-        hobby.energyLevel =
-            response.content.energyLevel.asHobbyEnergyLevel
-        hobby.minimumDurationInMinutes =
-            response.content.minimumDurationInMinutes
+        try Self.validate(response.content)
+        try Task.checkCancellation()
+        Self.apply(response.content, to: hobby, title: title, description: description)
     }
-}
 
-#Playground {
-    let classifier = HobbyClassifier()
-    let hobbies = [
-        Hobby(
-            title: "Cozinhar",
-            hobbyDescription:
-                "Leva a tarde inteira, preciso de bastante tempo livre."
-        ),
-        Hobby(
-            title: "Assistir séries",
-            hobbyDescription:
-                "Gosto de assistir quando tenho algum tempo livre."
-        ),
-    ]
-    do {
-        try await classifier.classify(hobby: hobbies[1])
-    } catch {
-        print(error)
+    static func apply(_ classification: ClassifiedHobby, to hobby: Hobby, title: String, description: String) {
+        guard !hobby.isDeleted, hobby.modelContext != nil,
+              hobby.title == title, hobby.hobbyDescription == description else { return }
+        hobby.energyLevel = classification.energyLevel.asHobbyEnergyLevel
+        hobby.minimumDurationInMinutes = classification.minimumDurationInMinutes
+    }
+
+    static func validate(_ classification: ClassifiedHobby) throws {
+        guard (1...720).contains(classification.minimumDurationInMinutes) else {
+            throw OnDeviceAI.Failure.invalidResponse
+        }
     }
 }

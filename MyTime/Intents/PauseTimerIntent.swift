@@ -7,12 +7,24 @@
 
 import AppIntents
 
-struct PauseTimerIntent: AppIntent {
+struct PauseTimerIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Pause Timer"
     
+    @Parameter(title: "Activity ID")
+    var activityID: String
+
+    init() {}
+
+    init(activityID: String) {
+        self.activityID = activityID
+    }
+
+    @MainActor
     func perform() async throws -> some IntentResult {
-        let defaults = UserDefaults(suiteName: "group.dev.weltonfelix.MyTime")
-        defaults?.set(true, forKey: "pauseRequested")
+        // LiveActivityIntent runs in the app; the extension only needs its declaration.
+        #if !MYTIME_WIDGET_EXTENSION
+        await PomodoroViewModel.shared.toggleTimer(activityID: activityID)
+        #endif
         return .result()
     }
 }

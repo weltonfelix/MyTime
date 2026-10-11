@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Playgrounds
 
 /// Orders tasks and interleaves hobbies into a daily routine.
 ///
@@ -22,13 +21,11 @@ import Playgrounds
 class RoutineGenerator {
     /// Minutes of accumulated load before inserting a hobby
     private let breakThreshold = 90
-    private let userPreferences: UserInstructionsParser.Adjustments
     private let hobbySelector: HobbySelector
 
-    init(instructions: String = "") {
-        self.userPreferences = UserInstructionsParser.parse(instructions)
+    init(preferences: UserInstructionsParser.Adjustments = .init()) {
         let configuration = HobbySelectorConfiguration(
-            adjustments: userPreferences
+            adjustments: preferences
         )
         self.hobbySelector = HobbySelector(config: configuration)
     }
@@ -109,21 +106,19 @@ class RoutineGenerator {
         - Returns: the ordered array of activities
      */
     private func orderActivities(tasks: [MatchedTask], hobbies: [SelectedHobby])
-        -> [Activity]
+        -> [PlannedActivity]
     {
         let orderedTasks = orderTasks(tasks)
 
-        var result = [Activity]()
+        var result = [PlannedActivity]()
         var remainingHobbies = hobbies
         var accumulatedLoad = 0
-        var activityIndex = 0
         var lastWasHobby = false
 
         for task in orderedTasks {
-            result.append(Activity(task: task.task, order: activityIndex))
-            activityIndex += 1
+            result.append(PlannedActivity(task: task.task))
 
-            let duration = task.classification?.estimatedDuration ?? 0
+            let duration = task.classification?.estimatedDuration ?? 30
             accumulatedLoad += duration
 
             let isHeavy = TaskLoadEvaluator.isHeavy(task: task)
@@ -133,13 +128,11 @@ class RoutineGenerator {
                 let hobby = remainingHobbies.removeFirst()
                 result
                     .append(
-                        Activity(
+                        PlannedActivity(
                             hobby: hobby.hobby,
-                            durationInMin: hobby.durationInMinutes,
-                            order: activityIndex
+                            durationInMin: hobby.durationInMinutes
                         )
                     )
-                activityIndex += 1
                 accumulatedLoad = 0
                 lastWasHobby = true
             } else {
@@ -151,10 +144,9 @@ class RoutineGenerator {
         for hobby in remainingHobbies {
             result
                 .append(
-                    Activity(
+                    PlannedActivity(
                         hobby: hobby.hobby,
-                        durationInMin: hobby.durationInMinutes,
-                        order: activityIndex
+                        durationInMin: hobby.durationInMinutes
                     )
                 )
         }
@@ -162,7 +154,7 @@ class RoutineGenerator {
         return result
     }
 
-    func generate(tasks: [MatchedTask], hobbies: [Hobby]) -> Routine {
+    func generate(tasks: [MatchedTask], hobbies: [Hobby]) throws -> [PlannedActivity] {
         let selectedHobbies = hobbySelector.select(
             for: .now,
             tasks: tasks,
@@ -171,6 +163,7 @@ class RoutineGenerator {
 
         let activities = orderActivities(tasks: tasks, hobbies: selectedHobbies)
 
-        return Routine(activities: activities)
+        try PlannedActivity.validate(activities, tasks: tasks.map(\.task), hobbies: hobbies)
+        return activities
     }
 }

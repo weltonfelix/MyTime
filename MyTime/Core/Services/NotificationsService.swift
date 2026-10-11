@@ -8,9 +8,11 @@
 import Foundation
 import UserNotifications
 
+@MainActor
 class NotificationsService {
     static let shared = NotificationsService()
     private var center = UNUserNotificationCenter.current()
+    private var pendingRequestID: String?
 
     func requestAuthorization() async {
         do {
@@ -35,8 +37,10 @@ class NotificationsService {
             repeats: false
         )
 
+        let id = UUID().uuidString
+        pendingRequestID = id
         let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
+            identifier: id,
             content: content,
             trigger: trigger,
 
@@ -44,12 +48,17 @@ class NotificationsService {
 
         do {
             try await center.add(request)
+            // A stopped session may finish scheduling after its replacement has started.
+            if pendingRequestID != id {
+                center.removePendingNotificationRequests(withIdentifiers: [id])
+            }
         } catch {
             print(error)
         }
     }
 
     func removePending() {
+        pendingRequestID = nil
         center.removeAllPendingNotificationRequests()
     }
 
@@ -58,6 +67,7 @@ class NotificationsService {
     }
 
     func removeAll() {
+        pendingRequestID = nil
         center.removeAllDeliveredNotifications()
         center.removeAllPendingNotificationRequests()
     }

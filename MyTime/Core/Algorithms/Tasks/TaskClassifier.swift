@@ -10,9 +10,6 @@ import FoundationModels
 
 @Generable(description: "Task classification")
 struct ClassifiedTask {
-    @Guide(description: "Task title exactly as provided")
-    var title: String
-
     @Guide(description: "Classification of the activity")
     var activityType: TaskActivityType
 
@@ -32,20 +29,12 @@ enum TaskActivityType: String {
     case domestic
 }
 
-@Generable(description: "Classification of all tasks")
-struct ClassifiedTaskList {
-    @Guide(description: "All tasks classified with type and estimated duration")
-    var tasks: [ClassifiedTask]
-}
-
 struct MatchedTask {
     var task: MyTask
     let classification: ClassifiedTask?
 }
 
 class TaskClassifier {
-    private let session: LanguageModelSession
-
     private static let systemPrompt = """
         You are a task classifier. For each task provided, classify it and estimate duration.
 
@@ -59,57 +48,30 @@ class TaskClassifier {
             Estimate duration based on the specific task.
         """
 
-    init() {
-        session = LanguageModelSession(
-            instructions: TaskClassifier.systemPrompt
-        )
-    }
-
-    private func matchTask(
-        _ classified: ClassifiedTask,
-        in tasks: [(MyTask, String)]
-    )
-        -> MatchedTask?
-    {
-        let normalizedGenerated = classified.title.normalized
-
-        return tasks.first {
-            $0.1.normalized == normalizedGenerated
-        }.map {
-            MatchedTask(task: $0.0, classification: classified)
+    func classify(tasks: [MyTask], infer: (String) async throws -> ClassifiedTask = TaskClassifier.infer) async throws -> [MatchedTask] {
+        let inputs = tasks.map { ($0, $0.taskDescription) }
+        var result: [MatchedTask] = []
+        for (task, description) in inputs {
+            try Task.checkCancellation()
+            let classification = try await infer(description)
+            try Self.validate(classification)
+            result.append(MatchedTask(task: task, classification: classification))
         }
+        return result
     }
 
-    private func insertMissingTasks(_ matched: [MatchedTask], tasks: [MyTask])
-        -> [MatchedTask]
-    {
-        let matchedIDs = Set(matched.map(\.task.id))
-
-        let missingTasks =
-            tasks
-            .filter { !matchedIDs.contains($0.id) }
-            .map { MatchedTask(task: $0, classification: nil) }
-
-        return matched + missingTasks
+    private static func infer(_ description: String) async throws -> ClassifiedTask {
+        try OnDeviceAI.checkAvailability()
+        let session = LanguageModelSession(instructions: systemPrompt + OnDeviceAI.inputInstructions)
+        return try await session.respond(
+            to: OnDeviceAI.encodeInput(["task": description]), generating: ClassifiedTask.self,
+            options: GenerationOptions(samplingMode: .greedy)
+        ).content
     }
 
-    func classify(tasks: [MyTask]) async throws -> [MatchedTask] {
-        let classificationPrompt = """
-            Classify these tasks:
-            \(tasks.map { "- \($0.taskDescription)" }.joined(separator: "\n"))
-            """
-
-        let response = try await session.respond(
-            to: classificationPrompt,
-            generating: ClassifiedTaskList.self,
-        )
-
-        let normalizedTasks = tasks.map({ ($0, $0.taskDescription.normalized) })
-
-        let matchedTasks = response.content.tasks.compactMap { genTask in
-            matchTask(genTask, in: normalizedTasks)
+    static func validate(_ classification: ClassifiedTask) throws {
+        guard (15...180).contains(classification.estimatedDuration) else {
+            throw OnDeviceAI.Failure.invalidResponse
         }
-        
-        return insertMissingTasks(matchedTasks, tasks: tasks)
     }
 }

@@ -19,7 +19,7 @@ struct SettingsView: View {
     @State private var newHobby: String = ""
     @FocusState private var isNewHobbyFocused: Bool
 
-    @State private var hobbyClassifier = HobbyClassifier()
+    @State var descriptionGenerator = HobbyDescriptionGenerator()
 
     var body: some View {
         NavigationStack {
@@ -28,11 +28,17 @@ struct SettingsView: View {
                     Section("Hobbies") {
                         ForEach(hobbies) { hobby in
                             NavigationLink(value: hobby) {
-                                Text(hobby.title)
+                                HStack {
+                                    Text(hobby.title)
+                                    Spacer()
+                                    if descriptionGenerator.pending.contains(hobby.persistentModelID) {
+                                        ProgressView().accessibilityLabel("Preparing hobby details")
+                                    }
+                                }
                             }
                         }.onDelete(perform: handleHobbyDeletion)
                         if isAdding {
-                            TextField("", text: $newHobby)
+                            TextField("Hobby name", text: $newHobby)
                                 .focused($isNewHobbyFocused)
                                 .onSubmit {
                                     handleNewHobby(promptForNew: true)
@@ -62,8 +68,11 @@ struct SettingsView: View {
                         .lineLimit(5...10)
                     } footer: {
                         Text(
-                            "Describe how you like to organize your day. Would you like more or less time for your hobbies? Any specific constraints?"
+                            "Choose more, fewer, or no hobbies; a busier or calmer day; low-energy activities; or short hobby sessions. Exact schedules are not supported."
                         )
+                    }
+                    Section {
+                        Link("Privacy Policy", destination: URL(string: "https://mytime.weltonfelix.dev/privacy")!)
                     }
                 }
             }.toolbar {
@@ -77,8 +86,15 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(
                 .inline
             )
+            .alert("Could not prepare hobby details", isPresented: Binding(get: { !descriptionGenerator.errors.isEmpty }, set: { _ in })) {
+                Button("OK", role: .cancel) {
+                    if !descriptionGenerator.errors.isEmpty { descriptionGenerator.errors.removeFirst() }
+                }
+            } message: {
+                Text(descriptionGenerator.errors.first ?? "")
+            }
             .navigationDestination(for: Hobby.self) { hobby in
-                HobbyDetailView(hobby: hobby)
+                HobbyDetailView(hobby: hobby, descriptionGenerator: descriptionGenerator, onClassificationError: reportClassificationError)
             }
         }
     }
@@ -110,8 +126,14 @@ struct SettingsView: View {
         }
 
         Task {
-            try? await hobbyClassifier.classify(hobby: createdHobby)
+            await descriptionGenerator.prepare(createdHobby) { message in
+                descriptionGenerator.errors.append(message)
+            }
         }
+    }
+
+    private func reportClassificationError(_ error: Error) {
+        descriptionGenerator.errors.append(OnDeviceAI.message(for: error))
     }
 
     func handleHobbyDeletion(indexSet: IndexSet) {
@@ -125,10 +147,8 @@ struct SettingsView: View {
     SettingsView()
 }
 
+#if DEBUG
 #Preview("Populated") {
-    do {
-        return SettingsView().modelContainer(try mockContainer())
-    } catch {
-        return Text("Failed to create container: \(error.localizedDescription)")
-    }
+    SettingsView().modelContainer(mockContainer())
 }
+#endif

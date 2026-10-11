@@ -54,25 +54,9 @@ class Hobby {
         let text = hobbyDescription.lowercased()
             .folding(options: .diacriticInsensitive, locale: .current)
 
-        // Weekends
-        if text.contains("fim de semana")
-            || text.contains("final de semana")
-            || text.contains("fins de semana")
-            || text.contains("finais de semana")
-            || text.contains("weekend")
-        {
-            return [.saturday, .sunday]
-        }
-
-        // Weekdays
-        if text.contains("dia util")
-            || text.contains("dias uteis")
-            || text.contains("semana")
-            || text.contains("weekdays")
-                && !text.contains("fim")
-        {
-            return [.monday, .tuesday, .wednesday, .thursday, .friday]
-        }
+        // shortcut: negations and day ranges are not interpreted; leave these descriptions unrestricted.
+        let unsupported = #"\b(?:nao|nunca|jamais|not|never|except|exceto|menos|sem|without|cannot|can't|don't|avoid)\b|\bno\s+(?:mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?|weekdays|weekends)\b|\b(?:segunda|terca|quarta|quinta|sexta|sabado|domingo|monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:-feira)?(?:\s+(?:a|ate|to|through)\s+|\s*[-–—]\s*)"#
+        guard text.range(of: unsupported, options: .regularExpression) == nil else { return nil }
 
         // Specific days
         var days: [HobbyPreferredDay] = []
@@ -87,12 +71,34 @@ class Hobby {
         ]
 
         for mapping in dayMappings {
-            if mapping.keywords.contains(where: { text.contains($0) }) {
+            if mapping.keywords.contains(where: {
+                text.range(of: "\\b" + $0 + "s?\\b", options: .regularExpression) != nil
+            }) {
                 days.append(mapping.day)
             }
         }
 
-        return days.isEmpty ? nil : days
+        if !days.isEmpty { return days }
+
+        // Weekends
+        if text.contains("fim de semana")
+            || text.contains("final de semana")
+            || text.contains("fins de semana")
+            || text.contains("finais de semana")
+            || text.contains("weekend")
+        {
+            return [.saturday, .sunday]
+        }
+
+        // Weekdays
+        if text.contains("dia util")
+            || text.contains("dias uteis")
+            || text.contains("weekdays")
+        {
+            return [.monday, .tuesday, .wednesday, .thursday, .friday]
+        }
+
+        return nil
     }
 
 }

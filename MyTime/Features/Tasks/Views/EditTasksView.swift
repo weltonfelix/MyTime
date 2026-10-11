@@ -73,12 +73,11 @@ struct EditTasksView: View {
                 }
                 ToolbarItemGroup(placement: .bottomBar) {
                     Spacer()
-                    Button {
+                    Button("Add Task", systemImage: "plus") {
                         showNewTask = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .foregroundStyle(.accent)
                     }
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.accent)
                 }
             }
             .animation(.default, value: displayedTasks.isEmpty)
@@ -109,6 +108,13 @@ struct EditTasksView: View {
     }
 
     func save() {
+        do {
+            try modelContext.save()
+        } catch {
+            showDiscardConfirmation = true
+            return
+        }
+
         for task in pendingDeletions {
             modelContext.delete(task)
         }
@@ -124,6 +130,7 @@ struct EditTasksView: View {
             onSubmit(hasChanges)
             dismiss()
         } catch {
+            modelContext.rollback()
             showDiscardConfirmation = true
         }
     }
@@ -147,10 +154,9 @@ struct EditTasksView: View {
     EditTasksView { changed in }
 }
 
+#if DEBUG
 #Preview("Populated") {
-    do {
-        return EditTasksView { changed in }.modelContainer(try mockContainer())
-    } catch {
-        return Text("Failed to create container: \(error.localizedDescription)")
-    }
+    EditTasksView { _ in }
+        .modelContainer(mockContainer())
 }
+#endif

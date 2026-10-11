@@ -13,9 +13,11 @@ struct PlayPauseButton: View {
     var context: ActivityViewContext<MyTimePomodoroAttributes>
 
     var body: some View {
-        Button(intent: PauseTimerIntent()) {
-            Image(systemName: context.state.remainingOnPause != nil ? "play" : "pause")
+        let isRunning = context.state.endDate != nil && context.state.remainingOnPause == nil && !context.isStale
+        Button(intent: PauseTimerIntent(activityID: context.activityID)) {
+            Image(systemName: isRunning ? "pause" : "play")
         }
+        .accessibilityLabel(isRunning ? Text("Pause") : Text("Continue"))
         .labelStyle(.iconOnly)
         .tint(.accent)
         .buttonBorderShape(.circle)
