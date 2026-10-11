@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct PomodoroControls: View {
-    @State var vm: PomodoroViewModel
+    let vm: PomodoroViewModel
     let date: Date
+    var start: (() async -> Void)? = nil
 
     private var buttonLabel: String {
         if vm.status == .ended {
@@ -56,11 +58,15 @@ struct PomodoroControls: View {
                     buttonLabel,
                     systemImage: buttonIcon
                 ) {
-                    if vm.status == .ended {
-                        vm.restartPomodoro()
-                    } else {
-                        vm.isTimerRunning
-                            ? vm.pauseTimer() : vm.startTimer()
+                    Task {
+                        if vm.status == .ended {
+                            await vm.restartPomodoro()
+                        } else if vm.isTimerRunning {
+                            await vm.pauseTimer()
+                        } else {
+                            if let start { await start() }
+                            else { await vm.startTimer() }
+                        }
                     }
 
                 }
@@ -74,7 +80,11 @@ struct PomodoroControls: View {
 }
 
 struct PomodoroView: View {
-    private let vm = PomodoroViewModel()
+    let task: MyTask
+    @State private var idleModel = PomodoroViewModel()
+    @State private var showSwitchConfirmation = false
+    private let session = PomodoroViewModel.shared
+    private var vm: PomodoroViewModel { session.belongs(to: task) ? session : idleModel }
     private var showAccentBackground: Bool {
         vm.status != .focus
     }
@@ -87,12 +97,28 @@ struct PomodoroView: View {
                 Color.accent.ignoresSafeArea().transition(.opacity)
             }
             TimelineView(.periodic(from: .now, by: 0.1)) { context in
-                PomodoroControls(vm: vm, date: context.date)
+                PomodoroControls(vm: vm, date: context.date) {
+                    if session.hasSession && !session.belongs(to: task) {
+                        showSwitchConfirmation = true
+                    } else if session.belongs(to: task) {
+                        await session.startTimer()
+                    } else {
+                        await session.startSession(for: task)
+                    }
+                }
                     .onChange(of: context.date) { _, now in
                         guard vm.status != .ended else { return }
-                        vm.advanceStage(at: now)
+                        Task { await vm.advanceStage(at: now) }
                     }
             }
+        }
+        .confirmationDialog("Start a new Pomodoro?", isPresented: $showSwitchConfirmation, titleVisibility: .visible) {
+            Button("End current session and start") {
+                Task { await session.startSession(for: task) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will end the Pomodoro for \(session.taskTitle ?? "") and start a new session for \(task.taskDescription).")
         }
         .sensoryFeedback(
             .success,
@@ -123,8 +149,9 @@ struct PomodoroView: View {
                 Button(
                     "Restart",
                     systemImage: "arrow.counterclockwise",
-                    action: vm.restartPomodoro
+                    action: { Task { await vm.restartPomodoro() } }
                 ).labelStyle(.iconOnly)
+                    .disabled(!session.belongs(to: task))
             }
 
         }
@@ -135,7 +162,7 @@ struct PomodoroView: View {
 
 #Preview {
     NavigationStack {
-        PomodoroView()
+        PomodoroView(task: MyTask(taskDescription: "Pomodoro"))
             .navigationTitle("Pomodoro")
     }
 }

@@ -14,16 +14,34 @@ struct MyTimePomodoroLiveActivity: Widget {
     private func progress(
         for context: ActivityViewContext<MyTimePomodoroAttributes>
     ) -> Double {
-        guard let end = context.state.endDate else { return 0 }
-        let elapsed =
-            context.state.stageDuration
-            - max(0, end.timeIntervalSince(.now))
-        return elapsed / context.state.stageDuration
+        guard context.state.stageDuration > 0 else { return 1 }
+        let remaining = context.state.remainingOnPause
+            ?? context.state.endDate?.timeIntervalSince(.now)
+            ?? context.state.stageDuration
+        return min(1, max(0, 1 - remaining / context.state.stageDuration))
+    }
+
+    @ViewBuilder
+    private func progressIndicator(for context: ActivityViewContext<MyTimePomodoroAttributes>) -> some View {
+        if context.state.remainingOnPause == nil, let end = context.state.endDate,
+           context.state.stageDuration > 0 {
+            ProgressView(timerInterval: end.addingTimeInterval(-context.state.stageDuration)...end, countsDown: false) {
+                EmptyView()
+            } currentValueLabel: {
+                EmptyView()
+            }
+            .tint(.accent)
+        } else {
+            LiveActivityProgressIndicator(progress: progress(for: context))
+        }
     }
 
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: MyTimePomodoroAttributes.self) { context in
             VStack {
+                if let title = context.attributes.taskTitle {
+                    Text(title).font(.subheadline).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+                }
                 HStack {
                     Text(context.state.pomodoroStatus).font(.headline)
                     Spacer()
@@ -48,14 +66,13 @@ struct MyTimePomodoroLiveActivity: Widget {
                         context: context
                     )
                 }
-                LiveActivityProgressIndicator(
-                    progress: progress(for: context)
-                )
+                progressIndicator(for: context)
             }.padding()
+                .widgetURL(MyTimePomodoroAttributes.url(activityID: context.activityID))
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Text(context.state.pomodoroStatus)
+                    Text(context.attributes.taskTitle ?? context.state.pomodoroStatus)
                         .font(.headline)
                         .padding(.leading, 4)
                 }
@@ -86,28 +103,19 @@ struct MyTimePomodoroLiveActivity: Widget {
                                 context: context
                             )
                         }
-                        LiveActivityProgressIndicator(
-                            progress: progress(for: context)
-                        )
+                        progressIndicator(for: context)
                     }
                     .padding([.bottom, .horizontal], 4)
                 }
             } compactLeading: {
                 Text(context.state.pomodoroStatus)
             } compactTrailing: {
-                let remaining = max(
-                    0,
-                    (context.state.endDate ?? .now).timeIntervalSince(.now)
-                )
-                let minutes = Int(remaining) / 60
-                Text("\(minutes < 1 ? "< 1" : String(minutes)) min")
-                    .monospacedDigit()
-                    .font(.caption2)
+                RemainingTime(context: context, font: .caption2)
+                    .frame(width: 48, alignment: .trailing)
             } minimal: {
-                LiveActivityProgressIndicator(
-                    progress: progress(for: context)
-                ).frame(width: 30)
+                progressIndicator(for: context).frame(width: 30)
             }
+            .widgetURL(MyTimePomodoroAttributes.url(activityID: context.activityID))
         }
     }
 }
