@@ -13,7 +13,7 @@ struct PomodoroControls: View {
     let date: Date
     var start: (() async -> Void)? = nil
 
-    private var buttonLabel: String {
+    private var buttonLabel: LocalizedStringKey {
         if vm.status == .ended {
             return "Restart"
         }
@@ -37,6 +37,8 @@ struct PomodoroControls: View {
                 )
                 .font(.system(size: 64))
                 .monospacedDigit()
+                .accessibilityLabel("Time remaining")
+                .accessibilityValue(Text(vm.displayTime(at: date).formattedForAccessibility))
             }
             VStack(spacing: 16) {
                 HStack(spacing: 8) {
@@ -119,6 +121,17 @@ struct PomodoroView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will end the Pomodoro for \(session.taskTitle ?? "") and start a new session for \(task.taskDescription).")
+        }
+        .onChange(of: vm.isTimerRunning) { _, running in
+            guard vm.hasActiveSession else { return }
+            let remaining = vm.displayTime(at: .now).formattedForAccessibility
+            let phase = String(localized: String.LocalizationValue(vm.status.rawValue))
+            let announcement = running
+                ? String(localized: "Pomodoro running. Phase: \(phase). \(remaining) remaining. Pause Pomodoro.")
+                : String(localized: "Pomodoro paused. Phase: \(phase). \(remaining) remaining. Resume Pomodoro.")
+            var spokenAnnouncement = AttributedString(announcement)
+            spokenAnnouncement.accessibilitySpeechAnnouncementPriority = .high
+            AccessibilityNotification.Announcement(spokenAnnouncement).post()
         }
         .sensoryFeedback(
             .success,
