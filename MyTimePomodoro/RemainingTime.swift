@@ -12,13 +12,15 @@ struct RemainingTime: View {
     var context: ActivityViewContext<MyTimePomodoroAttributes>
 
     var body: some View {
+        let now = Date.now
+
         if let remaining = context.state.remainingOnPause {
             Text(ceil(remaining).formattedAsTimer)
                 .monospacedDigit()
                 .font(.largeTitle)
-        } else if let end = context.state.endDate {
+        } else if let end = context.state.endDate, end > now {
             Text(
-                timerInterval: .now...end,
+                timerInterval: now...end,
                 countsDown: true
             )
             .monospacedDigit()
