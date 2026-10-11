@@ -5,13 +5,31 @@ import Testing
 
 @MainActor
 struct HobbyDescriptionTests {
+    @Test func descriptionsMustMatchRequestedLanguage() throws {
+        let portuguese = "Leitura de livros, contos ou outros textos."
+        let english = "Reading books, short stories, or other written texts."
+        try HobbyDescriptionGenerator.validate(portuguese, language: "pt-BR")
+        try HobbyDescriptionGenerator.validate(english, language: "en")
+        try HobbyDescriptionGenerator.validate("", language: "pt-BR")
+        #expect(throws: OnDeviceAI.Failure.self) {
+            try HobbyDescriptionGenerator.validate(english, language: "pt-BR")
+        }
+        #expect(throws: OnDeviceAI.Failure.self) {
+            try HobbyDescriptionGenerator.validate(portuguese, language: "en")
+        }
+        #expect(throws: OnDeviceAI.Failure.self) {
+            try HobbyDescriptionGenerator.validate(String(repeating: "a", count: 501), language: "en")
+        }
+    }
+
     @Test func suggestionPrecedesClassificationAndPreservesEdits() async throws {
         let container = try ModelContainer(for: Routine.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let hobby = Hobby(title: "Ler", hobbyDescription: "")
         container.mainContext.insert(hobby)
         let generator = HobbyDescriptionGenerator()
-        await generator.prepare(hobby, suggest: { title, _ in
+        await generator.prepare(hobby, suggest: { title, language in
             #expect(title == "Ler")
+            #expect(language == Bundle.main.preferredLocalizations.first ?? "en")
             #expect(generator.pending.contains(hobby.persistentModelID))
             return "Leitura de textos."
         }, classify: { item in

@@ -1,5 +1,6 @@
 import Foundation
 import FoundationModels
+import NaturalLanguage
 import SwiftData
 
 @Generable
@@ -18,6 +19,7 @@ final class HobbyDescriptionGenerator {
         try OnDeviceAI.checkAvailability()
         let session = LanguageModelSession(model: .default, instructions: """
             Describe the hobby activity using only the supplied title, in the supplied language.
+            The supplied language overrides the language of the title and examples: pt-BR means Brazilian Portuguese; en means English.
             Write one or two short, impersonal sentences. Do not address or describe the user.
             Never infer experience, frequency, schedules, companions, available equipment,
             goals, emotions, personal preferences, or the user's relationship with the activity.
@@ -33,8 +35,18 @@ final class HobbyDescriptionGenerator {
             options: GenerationOptions(samplingMode: .greedy)
         )
         let text = response.content.text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard text.count <= 500 else { throw OnDeviceAI.Failure.invalidResponse }
+        try validate(text, language: language)
         return text
+    }
+
+    static func validate(_ text: String, language: String) throws {
+        guard text.count <= 500 else { throw OnDeviceAI.Failure.invalidResponse }
+        guard !text.isEmpty else { return }
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(text)
+        guard recognizer.dominantLanguage?.rawValue == Locale(identifier: language).language.languageCode?.identifier else {
+            throw OnDeviceAI.Failure.invalidResponse
+        }
     }
 
     func prepare(
