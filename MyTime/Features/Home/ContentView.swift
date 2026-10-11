@@ -130,7 +130,7 @@ struct ContentView: View {
             .sheet(isPresented: $showEditTasks) {
                 EditTasksView(onSubmit: { hasChanges in
                     if hasChanges || (routine == nil && !tasks.isEmpty) {
-                        generateRoutine()
+                        generateRoutine(preserveCompletion: true)
                     }
                 })
             }
