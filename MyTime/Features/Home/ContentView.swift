@@ -125,7 +125,9 @@ struct ContentView: View {
             )
             .sheet(isPresented: $showEditTasks) {
                 EditTasksView(onSubmit: { hasChanges in
-                    if hasChanges { generateRoutine() }
+                    if hasChanges || (routine == nil && !tasks.isEmpty) {
+                        generateRoutine()
+                    }
                 })
             }
             .sheet(isPresented: $showSettings, onDismiss: {
@@ -185,9 +187,7 @@ struct ContentView: View {
     }
 
     func deleteOldRoutines() {
-        let routineDate = routine?.date ?? .distantPast
-
-        if !Calendar.current.isDateInToday(routineDate) {
+        if let routine, !Calendar.current.isDateInToday(routine.date) {
             routines.forEach(modelContext.delete)
             tasks.forEach(modelContext.delete)
         }
