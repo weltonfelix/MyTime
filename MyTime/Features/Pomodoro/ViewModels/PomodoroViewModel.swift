@@ -7,9 +7,13 @@
 
 import ActivityKit
 import SwiftUI
+import SwiftData
 
+@MainActor
 @Observable
 final class PomodoroViewModel {
+    static let shared = PomodoroViewModel(activity: ActivityKit.Activity<MyTimePomodoroAttributes>.activities.first)
+
     enum PomodoroStatus: String {
         case focus = "Focus"
         case rest = "Interval"
@@ -51,40 +55,125 @@ final class PomodoroViewModel {
 
     private var soundManager = SoundManager()
     private var liveActivity: ActivityKit.Activity<MyTimePomodoroAttributes>?
-    private var liveActivityUpdateTask: Task<Void, Never>?
+    private var isSwitchingSession = false
+    private(set) var taskID: PersistentIdentifier?
+    private(set) var taskTitle: String?
 
-    func startTimer() {
+    var hasSession: Bool { taskID != nil && status != .ended }
+
+    func belongs(to task: MyTask) -> Bool { taskID == task.persistentModelID }
+
+    func startSession(for task: MyTask) async {
+        guard !isSwitchingSession else { return }
+        isSwitchingSession = true
+        defer { isSwitchingSession = false }
+        await restartPomodoro()
+        taskID = task.persistentModelID
+        taskTitle = String(task.taskDescription.prefix(200))
+        await startTimer()
+    }
+
+    func reconcile(tasks: [MyTask]) async {
+        guard !isSwitchingSession else { return }
+        let activities = ActivityKit.Activity<MyTimePomodoroAttributes>.activities
+        let valid = activities.filter { activity in
+            tasks.contains { $0.persistentModelID == activity.attributes.taskID }
+        }
+        let selected = valid.first { $0.id == liveActivity?.id } ?? valid.first
+        for activity in activities where activity.id != selected?.id {
+            await activity.end(nil, dismissalPolicy: .immediate)
+        }
+        if let selected {
+            if liveActivity?.id != selected.id { adopt(selected) }
+            await advanceStage(at: .now)
+        } else if taskID != nil && !tasks.contains(where: { $0.persistentModelID == taskID }) {
+            await restartPomodoro()
+        } else if liveActivity != nil {
+            await restartPomodoro()
+        }
+    }
+
+    func taskID(for url: URL) -> PersistentIdentifier? {
+        guard url.scheme == "mytime", url.host == "pomodoro",
+              url.pathComponents.count == 2,
+              let activity = ActivityKit.Activity<MyTimePomodoroAttributes>.activities.first(where: {
+                  $0.id == url.lastPathComponent
+              }) else { return nil }
+        return activity.attributes.taskID
+    }
+
+    private func adopt(_ activity: ActivityKit.Activity<MyTimePomodoroAttributes>) {
+        liveActivity = activity
+        taskID = activity.attributes.taskID
+        taskTitle = activity.attributes.taskTitle
+        restore(activity.content.state)
+    }
+
+    init(activity: ActivityKit.Activity<MyTimePomodoroAttributes>? = nil) {
+        if let activity { adopt(activity) }
+    }
+
+    func restore(_ state: MyTimePomodoroAttributes.ContentState) {
+        currentStage = state.currentSession
+        status = PomodoroStatus(rawValue: state.pomodoroStatus) ?? .focus
+        remainingOnPause = state.remainingOnPause
+        timerStartDate = state.endDate?.addingTimeInterval(-currentStageDuration)
+        isTimerRunning = state.endDate != nil && remainingOnPause == nil
+    }
+
+    func toggleTimer(activityID: String) async {
+        guard let activity = ActivityKit.Activity<MyTimePomodoroAttributes>.activities.first(where: { $0.id == activityID }) else { return }
+        if liveActivity?.id != activity.id {
+            adopt(activity)
+        }
+        advanceStageIfNeeded(at: .now)
+        if status == .ended {
+            await endLiveActivity()
+        } else if isTimerRunning {
+            await pauseTimer()
+        } else {
+            await startTimer()
+        }
+    }
+
+    private var contentState: MyTimePomodoroAttributes.ContentState {
+        .init(currentSession: currentStage, pomodoroStatus: status.rawValue,
+              endDate: endDate, stageDuration: currentStageDuration,
+              remainingOnPause: remainingOnPause)
+    }
+
+    func startTimer() async {
         let elapsedTime =
             remainingOnPause.map { currentStageDuration - $0 } ?? 0
         timerStartDate = .now - elapsedTime
         remainingOnPause = nil
         isTimerRunning = true
 
-        observePauseRequests()
-        scheduleNotification(in: remainingTime(at: .now))
+        let startDate = timerStartDate
+        await scheduleNotification(in: remainingTime(at: .now))
+        guard isTimerRunning, timerStartDate == startDate else { return }
         if liveActivity == nil {
             startLiveActivity()
-            startLiveActivityUpdates()
         } else {
-            updateLiveActivity()
+            await updateLiveActivity()
         }
     }
 
-    func pauseTimer() {
+    func pauseTimer() async {
         isTimerRunning = false
         remainingOnPause = remainingTime(at: .now)
         NotificationsService.shared.removeAll()
-        updateLiveActivity()
-        liveActivityUpdateTask?.cancel()
+        await updateLiveActivity()
     }
 
-    func restartPomodoro() {
+    func restartPomodoro() async {
+        taskID = nil
+        taskTitle = nil
         currentStage = 0
         status = .focus
         stopTimer()
         NotificationsService.shared.removeAll()
-        endLiveActivity()
-        liveActivityUpdateTask?.cancel()
+        await endLiveActivity()
     }
 
     private func stopTimer() {
@@ -94,65 +183,31 @@ final class PomodoroViewModel {
     }
 
     func startLiveActivity() {
-        let attributes = MyTimePomodoroAttributes()
-        let contentState = MyTimePomodoroAttributes.ContentState(
-            currentSession: currentStage,
-            pomodoroStatus: status.rawValue,
-            endDate: endDate,
-            stageDuration: currentStageDuration,
-            remainingOnPause: remainingOnPause
-        )
+        let attributes = MyTimePomodoroAttributes(taskID: taskID, taskTitle: taskTitle)
 
         do {
             liveActivity = try ActivityKit.Activity<MyTimePomodoroAttributes>
                 .request(
                     attributes: attributes,
-                    content: .init(state: contentState, staleDate: nil)
+                    content: .init(state: contentState, staleDate: endDate)
                 )
         } catch {
             print("Erro: \(error)")
         }
     }
 
-    func updateLiveActivity() {
+    private func updateLiveActivity() async {
         guard let liveActivity else { return }
 
-        let newState = MyTimePomodoroAttributes.ContentState(
-            currentSession: currentStage,
-            pomodoroStatus: status.rawValue,
-            endDate: endDate,
-            stageDuration: currentStageDuration,
-            remainingOnPause: remainingOnPause
-        )
+        let newState = contentState
 
-        Task { @MainActor in
-            await liveActivity.update(.init(state: newState, staleDate: nil))
-        }
+        await liveActivity.update(.init(state: newState, staleDate: isTimerRunning ? endDate : nil))
     }
 
-    func endLiveActivity() {
-        Task { @MainActor in
-            await liveActivity?.end(nil, dismissalPolicy: .immediate)
-            liveActivity = nil
-        }
-    }
-
-    private func observePauseRequests() {
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-            let defaults = UserDefaults(
-                suiteName: "group.dev.weltonfelix.MyTime"
-            )
-            guard defaults?.bool(forKey: "pauseRequested") ?? false else {
-                return
-            }
-            defaults?.set(false, forKey: "pauseRequested")
-
-            if self.isTimerRunning {
-                self.pauseTimer()
-            } else {
-                self.startTimer()
-            }
-        }
+    private func endLiveActivity() async {
+        let activity = liveActivity
+        liveActivity = nil
+        await activity?.end(.init(state: contentState, staleDate: nil), dismissalPolicy: .immediate)
     }
 
     func remainingTime(at now: Date) -> TimeInterval {
@@ -185,8 +240,16 @@ final class PomodoroViewModel {
         return 0  // Next stages
     }
 
-    func advanceStage(at now: Date) {
-        guard isTimerRunning && remainingTime(at: now) <= 0 else { return }
+    func advanceStage(at now: Date) async {
+        if advanceStageIfNeeded(at: now) {
+            if status == .ended { await endLiveActivity() }
+            else { await updateLiveActivity() }
+        }
+    }
+
+    @discardableResult
+    private func advanceStageIfNeeded(at now: Date) -> Bool {
+        guard isTimerRunning && remainingTime(at: now) <= 0 else { return false }
 
         stopTimer()
         let isLastStage = currentStage == totalStages - 1
@@ -202,21 +265,12 @@ final class PomodoroViewModel {
             }
         }
 
-        updateLiveActivity()
+        if status != .ended { remainingOnPause = currentStageDuration }
         soundManager.playChime()
+        return true
     }
 
-    private func startLiveActivityUpdates() {
-        liveActivityUpdateTask?.cancel()
-        liveActivityUpdateTask = Task { @MainActor in
-            while !Task.isCancelled {
-                updateLiveActivity()
-                try? await Task.sleep(for: .seconds(5))
-            }
-        }
-    }
-
-    private func scheduleNotification(in interval: TimeInterval) {
+    private func scheduleNotification(in interval: TimeInterval) async {
         guard interval > 0 else { return }
 
         let title: String
@@ -236,9 +290,7 @@ final class PomodoroViewModel {
             return
         }
 
-        Task {
-            await NotificationsService.shared
-                .sendNotification(title: title, body: body, in: interval)
-        }
+        await NotificationsService.shared
+            .sendNotification(title: title, body: body, in: interval)
     }
 }

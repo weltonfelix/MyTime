@@ -9,6 +9,10 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
+    @State private var path = NavigationPath()
+    private let pomodoro = PomodoroViewModel.shared
+    @Environment(\.scenePhase) private var scenePhase
+
     @State private var showEditTasks = false
     @State private var showSettings = false
     @State private var descriptionGenerator = HobbyDescriptionGenerator()
@@ -38,7 +42,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             VStack {
                 if isLoading {
                     ProgressView("Preparing your day...")
@@ -176,11 +180,54 @@ struct ContentView: View {
                 Text("MyTime supports hobby amounts, available time, energy, and short sessions. Exact times, deadlines, and specific activity ordering are not supported.")
             }
             .navigationDestination(for: MyTask.self) { task in
-                PomodoroView().navigationTitle(task.taskDescription)
+                PomodoroView(task: task).navigationTitle(task.taskDescription)
             }
             .navigationDestination(for: Activity.self) { activity in
                 TimerView(durationInMinutes: activity.durationInMin ?? 30)
                     .navigationTitle(activity.hobby?.title ?? "Timer")
+            }
+            .safeAreaInset(edge: .bottom) {
+                if pomodoro.hasSession, let task = tasks.first(where: { pomodoro.belongs(to: $0) }) {
+                    TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                        Button {
+                            path = NavigationPath()
+                            path.append(task)
+                        } label: {
+                            HStack {
+                                Image(systemName: "timer")
+                                VStack(alignment: .leading) {
+                                    Text("Return to Pomodoro").font(.headline)
+                                    Text(task.taskDescription).font(.subheadline).lineLimit(1)
+                                }
+                                Spacer()
+                                Text(pomodoro.displayTime(at: timeline.date).formattedAsTimer)
+                                    .monospacedDigit()
+                                Image(systemName: "chevron.right")
+                            }
+                            .padding()
+                        }
+                        .buttonStyle(.glass)
+                        .padding(.horizontal)
+                        .onChange(of: timeline.date) { _, now in
+                            Task { await pomodoro.advanceStage(at: now) }
+                        }
+                    }
+                }
+            }
+            .onOpenURL { url in
+                guard let id = pomodoro.taskID(for: url),
+                      let task = tasks.first(where: { $0.persistentModelID == id }) else { return }
+                showEditTasks = false
+                showSettings = false
+                path = NavigationPath()
+                path.append(task)
+            }
+            .task { await pomodoro.reconcile(tasks: tasks) }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { Task { await pomodoro.reconcile(tasks: tasks) } }
+            }
+            .onChange(of: tasks.map(\.persistentModelID)) { _, _ in
+                Task { await pomodoro.reconcile(tasks: tasks) }
             }
             .onAppear(perform: deleteOldRoutines)
         }
