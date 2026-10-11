@@ -278,14 +278,14 @@ final class PomodoroViewModel {
 
         switch status {
         case .focus:
-            title = "Focus session complete!"
-            body = "You deserve some rest."
+            title = String(localized: "Focus session complete!")
+            body = String(localized: "You deserve some rest.")
         case .rest:
-            title = "Rest session complete!"
-            body = "You are ready for the next round!"
+            title = String(localized: "Rest session complete!")
+            body = String(localized: "You are ready for the next round!")
         case .longRest:
-            title = "Congratulations!"
-            body = "Pomodoro is over!"
+            title = String(localized: "Congratulations!")
+            body = String(localized: "Pomodoro is over!")
         case .ended:
             return
         }

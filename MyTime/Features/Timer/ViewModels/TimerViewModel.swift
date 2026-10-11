@@ -95,8 +95,8 @@ final class TimerViewModel {
     private func scheduleNotification(in interval: TimeInterval) {
         guard interval > 0 else { return }
 
-        let title = "How was your break?"
-        let body = "Your hobby time is up."
+        let title = String(localized: "How was your break?")
+        let body = String(localized: "Your hobby time is up.")
         Task {
             await NotificationsService.shared
                 .sendNotification(title: title, body: body, in: interval)
