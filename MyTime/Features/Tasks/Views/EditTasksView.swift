@@ -73,12 +73,11 @@ struct EditTasksView: View {
                 }
                 ToolbarItemGroup(placement: .bottomBar) {
                     Spacer()
-                    Button {
+                    Button("Add Task", systemImage: "plus") {
                         showNewTask = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .foregroundStyle(.accent)
                     }
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.accent)
                 }
             }
             .animation(.default, value: displayedTasks.isEmpty)

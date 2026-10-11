@@ -38,7 +38,7 @@ struct SettingsView: View {
                             }
                         }.onDelete(perform: handleHobbyDeletion)
                         if isAdding {
-                            TextField("", text: $newHobby)
+                            TextField("Hobby name", text: $newHobby)
                                 .focused($isNewHobbyFocused)
                                 .onSubmit {
                                     handleNewHobby(promptForNew: true)
