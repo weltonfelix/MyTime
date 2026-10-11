@@ -143,6 +143,8 @@ final class PomodoroViewModel {
     }
 
     func startTimer() async {
+        guard !isTimerRunning, status != .ended else { return }
+        TimerViewModel.shared.restartTimer()
         let elapsedTime =
             remainingOnPause.map { currentStageDuration - $0 } ?? 0
         timerStartDate = .now - elapsedTime
@@ -160,6 +162,7 @@ final class PomodoroViewModel {
     }
 
     func pauseTimer() async {
+        guard isTimerRunning else { return }
         isTimerRunning = false
         remainingOnPause = remainingTime(at: .now)
         NotificationsService.shared.removeAll()

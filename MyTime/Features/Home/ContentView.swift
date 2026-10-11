@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var showHobbyOptions = false
     @State private var path = NavigationPath()
     private let pomodoro = PomodoroViewModel.shared
+    private let hobbyTimer = TimerViewModel.shared
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var showEditTasks = false
@@ -240,7 +241,7 @@ struct ContentView: View {
                 PomodoroView(task: task).navigationTitle(task.taskDescription)
             }
             .navigationDestination(for: Activity.self) { activity in
-                TimerView(durationInMinutes: activity.durationInMin ?? 30)
+                TimerView(activity: activity)
                     .navigationTitle(activity.hobby?.title ?? "Timer")
             }
             .safeAreaInset(edge: .bottom) {
@@ -279,15 +280,22 @@ struct ContentView: View {
                 path = NavigationPath()
                 path.append(task)
             }
-            .task { await pomodoro.reconcile(tasks: tasks) }
+            .task {
+                await pomodoro.reconcile(tasks: tasks)
+                hobbyTimer.reconcile(activities: routines.flatMap(\.activities))
+            }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active {
                     deleteOldRoutines()
                     Task { await pomodoro.reconcile(tasks: tasks) }
+                    hobbyTimer.reconcile(activities: routines.flatMap(\.activities))
                 }
             }
             .onChange(of: tasks.map(\.persistentModelID)) { _, _ in
                 Task { await pomodoro.reconcile(tasks: tasks) }
+            }
+            .onChange(of: routines.flatMap(\.activities).map { [$0.persistentModelID, $0.hobby?.persistentModelID] }) { _, _ in
+                hobbyTimer.reconcile(activities: routines.flatMap(\.activities))
             }
             .onAppear(perform: deleteOldRoutines)
         }

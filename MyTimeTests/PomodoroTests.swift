@@ -182,4 +182,70 @@ struct PomodoroTests {
         #expect(model.isTimerRunning == wasRunning)
     }
 
+    @Test func hobbyAndPomodoroSessionsAreMutuallyExclusive() async throws {
+        let container = try ModelContainer(for: Routine.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let task = MyTask(taskDescription: "Study")
+        let first = Activity(hobby: Hobby(title: "Read", hobbyDescription: ""), durationInMin: 30)
+        let second = Activity(hobby: Hobby(title: "Walk", hobbyDescription: ""), durationInMin: 15)
+        container.mainContext.insert(Routine(activities: [Activity(task: task), first, second]))
+        try container.mainContext.save()
+        let pomodoro = PomodoroViewModel.shared
+        let timer = TimerViewModel.shared
+        defer { timer.restartTimer() }
+
+        await pomodoro.startSession(for: task)
+        #expect(pomodoro.isTimerRunning)
+        await timer.startSession(for: first)
+        #expect(!pomodoro.hasSession && !pomodoro.isTimerRunning)
+        #expect(timer.belongs(to: first) && timer.isTimerRunning)
+        let remaining = timer.remainingTime(at: .now)
+        _ = TimerView(activity: first)
+        _ = TimerView(activity: second)
+        #expect(timer.belongs(to: first))
+        #expect(abs(timer.remainingTime(at: .now) - remaining) < 1)
+
+        await timer.startSession(for: second)
+        #expect(!timer.belongs(to: first) && timer.belongs(to: second))
+        #expect(timer.duration == 15 * 60)
+        timer.pauseTimer()
+        #expect(timer.isActive && !timer.isTimerRunning)
+        await pomodoro.startSession(for: task)
+        #expect(!timer.isActive && timer.activityID == nil)
+        #expect(pomodoro.isTimerRunning)
+        await timer.startSession(for: first)
+        #expect(!pomodoro.hasSession)
+        first.hobby = second.hobby
+        #expect(!timer.belongs(to: first))
+        timer.reconcile(activities: [first, second])
+        #expect(!timer.isActive)
+        await timer.startSession(for: first)
+        timer.reconcile(activities: [second])
+        #expect(!timer.isActive && timer.activityID == nil)
+    }
+
+    @Test func hobbySessionRestoresRunningAndPausedTime() async throws {
+        let suiteName = "MyTimeTimerTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let container = try ModelContainer(for: Routine.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let activity = Activity(hobby: Hobby(title: "Read", hobbyDescription: ""), durationInMin: 30)
+        container.mainContext.insert(Routine(activities: [activity]))
+        try container.mainContext.save()
+        let timer = TimerViewModel(duration: 0, defaults: defaults)
+        defer { timer.restartTimer() }
+        await timer.startSession(for: activity)
+        let recovered = TimerViewModel(duration: 0, defaults: defaults)
+        #expect(recovered.belongs(to: activity) && recovered.isTimerRunning)
+        #expect(abs(recovered.remainingTime(at: .now) - timer.remainingTime(at: .now)) < 1)
+        timer.pauseTimer()
+        let paused = TimerViewModel(duration: 0, defaults: defaults)
+        #expect(paused.belongs(to: activity) && paused.isActive && !paused.isTimerRunning)
+        #expect(paused.remainingTime(at: .now.addingTimeInterval(600)) == timer.remainingTime(at: .now))
+        timer.restartTimer()
+        let stopped = TimerViewModel(duration: 0, defaults: defaults)
+        #expect(stopped.activityID == nil && !stopped.isActive)
+    }
+
 }

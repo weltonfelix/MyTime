@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct TimerControls: View {
-    @State var vm: TimerViewModel
+    let vm: TimerViewModel
     let date: Date
+    var start: (() async -> Void)? = nil
 
     private var buttonLabel: LocalizedStringKey {
         if vm.isEnded {
@@ -51,8 +52,14 @@ struct TimerControls: View {
                     if vm.isEnded {
                         vm.restartTimer()
                     } else {
-                        vm.isTimerRunning
-                            ? vm.pauseTimer() : vm.startTimer()
+                        if vm.isTimerRunning {
+                            vm.pauseTimer()
+                        } else {
+                            Task {
+                                if let start { await start() }
+                                else { await vm.startTimer() }
+                            }
+                        }
                     }
 
                 }
@@ -66,15 +73,22 @@ struct TimerControls: View {
 }
 
 struct TimerView: View {
-    private let vm: TimerViewModel
+    let activity: Activity
+    @State private var idleModel: TimerViewModel
+    private let session = TimerViewModel.shared
+    private var vm: TimerViewModel { session.belongs(to: activity) ? session : idleModel }
 
-    init(durationInMinutes: Int) {
-        vm = .init(duration: TimeInterval(durationInMinutes * 60))
+    init(activity: Activity) {
+        self.activity = activity
+        _idleModel = State(initialValue: TimerViewModel(duration: TimeInterval((activity.durationInMin ?? 30) * 60)))
     }
     
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.1)) { context in
-            TimerControls(vm: vm, date: context.date)
+            TimerControls(vm: vm, date: context.date) {
+                if session.belongs(to: activity) { await session.startTimer() }
+                else { await session.startSession(for: activity) }
+            }
                 .onChange(of: context.date) { _, now in
                     guard vm.isTimerRunning else { return }
                     vm.checkEnd(at: now)
@@ -101,6 +115,7 @@ struct TimerView: View {
                     systemImage: "arrow.counterclockwise",
                     action: vm.restartTimer
                 ).labelStyle(.iconOnly)
+                    .disabled(!session.belongs(to: activity))
             }
 
         }
@@ -109,7 +124,7 @@ struct TimerView: View {
 
 #Preview {
     NavigationStack {
-        TimerView(durationInMinutes: 1)
+        TimerView(activity: Activity(hobby: Hobby(title: "Read", hobbyDescription: ""), durationInMin: 1))
             .navigationTitle("Timer")
     }
 }
