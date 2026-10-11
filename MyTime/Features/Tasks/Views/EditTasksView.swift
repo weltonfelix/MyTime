@@ -109,6 +109,13 @@ struct EditTasksView: View {
     }
 
     func save() {
+        do {
+            try modelContext.save()
+        } catch {
+            showDiscardConfirmation = true
+            return
+        }
+
         for task in pendingDeletions {
             modelContext.delete(task)
         }
@@ -124,6 +131,7 @@ struct EditTasksView: View {
             onSubmit(hasChanges)
             dismiss()
         } catch {
+            modelContext.rollback()
             showDiscardConfirmation = true
         }
     }
