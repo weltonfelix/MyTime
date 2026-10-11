@@ -1,7 +1,28 @@
+import Foundation
 import SwiftData
 
 @MainActor
 enum RoutinePersistence {
+    static func removeExpired(in context: ModelContext, now: Date = .now) throws -> Bool {
+        let startOfDay = Calendar.current.startOfDay(for: now)
+        let expired = try context.fetch(FetchDescriptor<Routine>()).filter { $0.date < startOfDay }
+        guard !expired.isEmpty else { return false }
+        try context.save()
+        do {
+            for routine in expired {
+                for activity in routine.activities where activity.isCompleted {
+                    if let task = activity.task { context.delete(task) }
+                }
+                context.delete(routine)
+            }
+            try context.save()
+            return true
+        } catch {
+            context.rollback()
+            throw error
+        }
+    }
+
     static func replace(with draft: [PlannedActivity], in context: ModelContext,
                         preserveCompletion: Bool = false,
                         save: (ModelContext) throws -> Void = { try $0.save() }) throws {

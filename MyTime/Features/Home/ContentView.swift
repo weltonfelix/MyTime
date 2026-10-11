@@ -33,6 +33,8 @@ struct ContentView: View {
     @State private var showHobbyError = false
     @State private var failedGenerationPreservesCompletion = false
     @State private var showErrorAlert: Bool = false
+    @State private var showDayError = false
+    @State private var dayError = ""
 
     @State private var generationMessage = ""
     @State private var showPreferenceNotice = false
@@ -229,6 +231,11 @@ struct ContentView: View {
             } message: {
                 Text("MyTime supports hobby amounts, available time, energy, and short sessions. Exact times, deadlines, and specific activity ordering are not supported.")
             }
+            .alert("Could not update your day", isPresented: $showDayError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(dayError)
+            }
             .navigationDestination(for: MyTask.self) { task in
                 PomodoroView(task: task).navigationTitle(task.taskDescription)
             }
@@ -274,7 +281,10 @@ struct ContentView: View {
             }
             .task { await pomodoro.reconcile(tasks: tasks) }
             .onChange(of: scenePhase) { _, phase in
-                if phase == .active { Task { await pomodoro.reconcile(tasks: tasks) } }
+                if phase == .active {
+                    deleteOldRoutines()
+                    Task { await pomodoro.reconcile(tasks: tasks) }
+                }
             }
             .onChange(of: tasks.map(\.persistentModelID)) { _, _ in
                 Task { await pomodoro.reconcile(tasks: tasks) }
@@ -307,12 +317,16 @@ struct ContentView: View {
     }
 
     func deleteOldRoutines() {
-        if let routine, !Calendar.current.isDateInToday(routine.date) {
-            routines.forEach(modelContext.delete)
-            tasks.forEach(modelContext.delete)
+        let removed: Bool
+        do {
+            removed = try RoutinePersistence.removeExpired(in: modelContext)
+        } catch {
+            dayError = error.localizedDescription
+            showDayError = true
+            return
         }
 
-        if routines.isEmpty {
+        if removed || routines.isEmpty {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 showTasksSheet()
             }

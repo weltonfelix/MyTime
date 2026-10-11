@@ -313,6 +313,16 @@
         }
       }
     },
+    "Could not update your day" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível atualizar seu dia"
+          }
+        }
+      }
+    },
     "Cycle Complete!" : {
       "extractionState" : "manual",
       "localizations" : {
