@@ -28,7 +28,7 @@ struct PomodoroControls: View {
     var body: some View {
         VStack(spacing: 4) {
             VStack {
-                Text(vm.status.rawValue).font(.headline)
+                Text(LocalizedStringKey(vm.status.rawValue)).font(.headline)
                 Text(
                     vm.displayTime(at: date)
                         .formattedAsTimer

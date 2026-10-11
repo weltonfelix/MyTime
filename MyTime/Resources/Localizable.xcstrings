@@ -1,6 +1,46 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Focus": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foco"
+          }
+        }
+      }
+    },
+    "Interval": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intervalo"
+          }
+        }
+      }
+    },
+    "Long Interval": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intervalo longo"
+          }
+        }
+      }
+    },
+    "Cycle Complete!": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciclo concluído!"
+          }
+        }
+      }
+    },
     "" : {
       "localizations" : {
         "pt-BR" : {
