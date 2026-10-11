@@ -63,3 +63,5 @@ fastlane/test_output
 
 # MyTime website
 /sites/mytime/
+
+output
