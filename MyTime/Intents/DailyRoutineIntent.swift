@@ -60,11 +60,12 @@ struct GetDailyRoutineIntent: AppIntent {
                 localized: "Here's your activities for today: "
             )
 
-            for (index, activity) in routine.activities.enumerated() {
+            let activities = routine.activities.sorted { $0.order < $1.order }
+            for (index, activity) in activities.enumerated() {
                 let separator: String
-                if index == routine.activities.count - 1 {
+                if index == activities.count - 1 {
                     separator = "."
-                } else if index == routine.activities.count - 2 {
+                } else if index == activities.count - 2 {
                     separator = " and "
                 } else {
                     separator = ", "
