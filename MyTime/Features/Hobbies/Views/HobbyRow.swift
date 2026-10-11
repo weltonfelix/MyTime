@@ -40,8 +40,14 @@ struct HobbyRow: View {
                     .contentTransition(
                         .symbolEffect(.replace)
                     )
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
+                .accessibilityLabel(activity.isCompleted
+                    ? Text("Mark \(hobby.title) as incomplete")
+                    : Text("Mark \(hobby.title) as complete"))
+                .accessibilityValue(activity.isCompleted ? Text("Completed") : Text("Not completed"))
                 .foregroundStyle(activity.isCompleted ? .accent : .secondary)
                 .sensoryFeedback(.success, trigger: activity.isCompleted) {
                     _, new in new
