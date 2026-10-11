@@ -71,6 +71,9 @@ struct SettingsView: View {
                             "Choose more, fewer, or no hobbies; a busier or calmer day; low-energy activities; or short hobby sessions. Exact schedules are not supported."
                         )
                     }
+                    Section {
+                        Link("Privacy Policy", destination: URL(string: "https://mytime.weltonfelix.dev/privacy")!)
+                    }
                 }
             }.toolbar {
                 ToolbarItem(placement: .topBarLeading) {

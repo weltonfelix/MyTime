@@ -731,6 +731,16 @@
         }
       }
     },
+    "Privacy Policy" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de Privacidade"
+          }
+        }
+      }
+    },
     "Preparing hobby details" : {
       "localizations" : {
         "pt-BR" : {
