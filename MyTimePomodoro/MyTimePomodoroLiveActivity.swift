@@ -43,7 +43,7 @@ struct MyTimePomodoroLiveActivity: Widget {
                     Text(title).font(.subheadline).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
                 }
                 HStack {
-                    Text(context.state.pomodoroStatus).font(.headline)
+                    Text(LocalizedStringKey(context.state.pomodoroStatus)).font(.headline)
                     Spacer()
                     HStack {
                         ForEach(Array(0..<4), id: \.self) { index in
@@ -72,7 +72,8 @@ struct MyTimePomodoroLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Text(context.attributes.taskTitle ?? context.state.pomodoroStatus)
+                    (context.attributes.taskTitle.map { Text($0) }
+                        ?? Text(LocalizedStringKey(context.state.pomodoroStatus)))
                         .font(.headline)
                         .padding(.leading, 4)
                 }
@@ -108,7 +109,7 @@ struct MyTimePomodoroLiveActivity: Widget {
                     .padding([.bottom, .horizontal], 4)
                 }
             } compactLeading: {
-                Text(context.state.pomodoroStatus)
+                Text(LocalizedStringKey(context.state.pomodoroStatus))
             } compactTrailing: {
                 RemainingTime(context: context, font: .caption2)
                     .frame(width: 48, alignment: .trailing)
